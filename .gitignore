@@ -8,6 +8,7 @@ out/
 dist/
 Debug/
 Release/
+res/
 
 # Ignore certain resource files 
 *.png 

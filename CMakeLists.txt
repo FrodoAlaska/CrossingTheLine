@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(NikolaProjectTemplate) # @TODO: Change the name of your project from here
+project(game)
 
 ### FetchContent ###
 ############################################################
@@ -7,6 +7,7 @@ include(FetchContent)
 
 set(NIKOLA_BUILD_TESTBED OFF)
 set(NIKOLA_BUILD_NBR     OFF)
+set(qu3e_build_demo      OFF)
 
 FetchContent_Declare(
   nikola
@@ -27,6 +28,7 @@ set(PROJECT_INCLUDES
   ${PROJECT_LIBS_DIR}
   
   ${nikola_SOURCE_DIR}/nikola/include
+  ${nikola_SOURCE_DIR}/libs
   ${glfw_SOURCE_DIR}/include
   ${glm_SOURCE_DIR}
 )
@@ -45,7 +47,20 @@ set(PROJECT_SOURCES
   # Core
   ${PROJECT_SRC_DIR}/app.cpp
   ${PROJECT_SRC_DIR}/main.cpp
+
+  # Entities
+  ${PROJECT_SRC_DIR}/entities/entity.cpp
+  ${PROJECT_SRC_DIR}/entities/player.cpp
+  ${PROJECT_SRC_DIR}/entities/vehicle.cpp
+  ${PROJECT_SRC_DIR}/entities/tile.cpp
+  
+  # Level
+  ${PROJECT_SRC_DIR}/level.cpp
 )
+############################################################
+
+### Library sources ###
+############################################################
 ############################################################
 
 ### Targets ###
@@ -55,8 +70,12 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
 ### Linking ###
 ############################################################
-target_include_directories(${PROJECT_NAME} PUBLIC BEFORE ${PROJECT_INCLUDES})
-target_link_libraries(${PROJECT_NAME} PUBLIC nikola)
+target_include_directories(${PROJECT_NAME} PRIVATE BEFORE ${PROJECT_INCLUDES})
+target_link_libraries(${PROJECT_NAME} PRIVATE nikola)
+
+target_precompile_headers(${PROJECT_NAME} PRIVATE 
+  "$<$<COMPILE_LANGUAGE:CXX>:${nikola_SOURCE_DIR}/nikola/include/nikola/nikola.h>"
+)
 ############################################################
 
 ### Compiling options ###

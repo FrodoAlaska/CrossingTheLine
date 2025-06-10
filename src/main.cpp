@@ -17,9 +17,9 @@ int main(int argc, char** argv) {
     .render_fn     = app_render, 
     .render_gui_fn = app_render_gui, 
 
-    .window_title  = "Nikola Project Template", 
-    .window_width  = 1280, 
-    .window_height = 720, 
+    .window_title  = "Game 1", 
+    .window_width  = 1600, 
+    .window_height = 900, 
     .window_flags  = win_flags,
 
     .args_values = argv, 

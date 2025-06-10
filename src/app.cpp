@@ -1,15 +1,27 @@
 #include "app.h"
 
 #include <nikola/nikola.h>
+#include <imgui/imgui.h>
+#include <imgui/imgui_stdlib.h>
+
+#include "level.h"
+
+/// ----------------------------------------------------------------------
+/// Consts
+
+const nikola::sizei LEVELS_MAX = 5;
+
+/// Consts
+/// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// App
 struct nikola::App {
   nikola::Window* window; 
-  nikola::FrameData frame_data;
-  nikola::u16 resource_group;
 
-  bool has_editor = false;
+  nikola::FilePath level_paths[LEVELS_MAX];
+  int current_level = 0; 
+  Level* level      = nullptr;
 };
 /// App
 /// ----------------------------------------------------------------------
@@ -18,9 +30,24 @@ struct nikola::App {
 /// Private functions
 
 static void init_resources(nikola::App* app) {
-  // Resource group init
-  nikola::FilePath res_path = nikola::filepath_append(nikola::filesystem_current_path(), "res");
-  app->resource_group       = nikola::resources_create_group("app_res", res_path);
+  // Font init
+  nikola::resources_push_font(nikola::RESOURCE_CACHE_ID, "fonts/iosevka_bold.nbrfont");
+}
+
+static void init_levels(nikola::App* app) {
+  nikola::FilePath current_path = nikola::filesystem_current_path();
+
+  // Level names init
+  
+  app->level_paths[0] = nikola::filepath_append(current_path, "levels/level_1.nklvl");
+  app->level_paths[1] = nikola::filepath_append(current_path, "levels/level_2.nklvl");
+  app->level_paths[2] = nikola::filepath_append(current_path, "levels/level_3.nklvl");;
+  app->level_paths[3] = nikola::filepath_append(current_path, "levels/level_4.nklvl");;
+  app->level_paths[4] = nikola::filepath_append(current_path, "levels/level_5.nklvl");;
+
+  // Current level init
+  app->level = level_create(app->window);
+  level_load(app->level, app->level_paths[0]);
 }
 
 /// Private functions
@@ -35,16 +62,7 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
 
   // Window init
   app->window = window;
-
-  // Camera init
-  nikola::CameraDesc cam_desc = {
-    .position     = nikola::Vec3(10.0f, 0.0f, 10.0f),
-    .target       = nikola::Vec3(-3.0f, 0.0f, 0.0f),
-    .up_axis      = nikola::Vec3(0.0f, 1.0f, 0.0f),
-    .aspect_ratio = nikola::window_get_aspect_ratio(app->window),
-    .move_func    = nikola::camera_fps_move_func,
-  };
-  nikola::camera_create(&app->frame_data.camera, cam_desc);
+  nikola::window_set_position(window, 100, 50);
 
   // GUI init
   nikola::gui_init(window);
@@ -52,10 +70,18 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   // Resources init
   init_resources(app);
 
+  // Levels init
+  init_levels(app);
+
+  // @TODO: This might be useless, but it's just for testing purposes
+  nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
+  nikola::physics_world_set_iterations_count(5);
+
   return app;
 }
 
 void app_shutdown(nikola::App* app) {
+  level_destroy(app->level);
   nikola::gui_shutdown();
 
   delete app;
@@ -68,36 +94,55 @@ void app_update(nikola::App* app, const nikola::f64 delta_time) {
     return;
   }
 
-  // Disable/enable the GUI
-  if(nikola::input_key_pressed(nikola::KEY_F1)) {
-    app->has_editor                  = !app->has_editor;
-    app->frame_data.camera.is_active = !app->has_editor;
+  // Update the current level
+  level_update(app->level);
 
-    nikola::input_cursor_show(app->has_editor);
+  // Level switching if the level is done
+
+  if(!app->level->has_won) {
+    return;
   }
 
-  // Update the camera
-  nikola::camera_update(app->frame_data.camera);
+  if(nikola::input_key_pressed(nikola::KEY_ENTER) && app->current_level < (LEVELS_MAX - 1)) {
+    app->current_level++;
+
+    level_unload(app->level);
+    level_load(app->level, app->level_paths[app->current_level]);
+  }
 }
 
 void app_render(nikola::App* app) {
-  nikola::renderer_begin(app->frame_data);
-  // All 3D rendering commands go here...
+  nikola::renderer_begin(app->level->frame);
+  level_render(app->level);
   nikola::renderer_end();
   
   nikola::batch_renderer_begin();
-  // All 2D rendering commands go here...
+  level_render_hud(app->level);
   nikola::batch_renderer_end();
 }
 
 void app_render_gui(nikola::App* app) {
-  if(!app->has_editor) {
+  if(!app->level->has_editor) {
     return;
   }
-
+ 
   nikola::gui_begin();
+ 
+  // Debug GUI (not gonna stay here for long)
+  nikola::gui_debug_info();
+  
+  // Level GUI
+  level_render_gui(app->level);  
 
-  // GUI functions go here...
+  // Level select
+  nikola::gui_begin_panel("Level select"); 
+ 
+  if(ImGui::Combo("Select level", &app->current_level, "Level 1\0Level 2\0Level 3\0Level 4\0Level 5\0\0")) {
+    level_unload(app->level);
+    level_load(app->level, app->level_paths[app->current_level]);
+  }
+
+  nikola::gui_end_panel(); 
 
   nikola::gui_end();
 }

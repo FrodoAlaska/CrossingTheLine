@@ -1,17 +1,17 @@
-# :: TEXTURE @textures 
-# textures 
+:: TEXTURE @textures 
+textures 
 
-# :: CUBEMAP @cubemaps
-# cubemaps
+:: CUBEMAP @cubemaps
+cubemaps
 
-# :: MODEL @models 
-# models
+:: MODEL @models 
+models
 
 # :: SHADER @shaders
 # shaders
 
-# :: FONT @fonts
-# fonts
+:: FONT @fonts
+fonts
 
-# :: AUDIO @audio 
-# audio 
+:: AUDIO @audio 
+audio 
