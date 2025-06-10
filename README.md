@@ -1,6 +1,6 @@
 # Game 1
 
-Find your way through the treacherous highway in order to finally get a whiff of the beautiful and amazing drug that makes go insane. 
+Find your way through the treacherous highway in order to finally save yourself from your own mind and past.
 
 ## General Structure 
 
