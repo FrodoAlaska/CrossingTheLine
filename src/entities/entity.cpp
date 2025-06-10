@@ -1,5 +1,5 @@
 #include "entity.h"
-#include "level.h"
+#include "levels/level.h"
 
 #include <nikola/nikola.h>
 
@@ -31,7 +31,7 @@ void entity_create(Entity* entity,
     .position  = nikola::Vec3(0.0f), 
     .extents   = scale,
     .friction  = 0.0f,
-    .is_sensor = (entity->type == ENTITY_END_POINT),
+    .is_sensor = (entity->type == ENTITY_END_POINT) || (entity->type == ENTITY_COIN),
   };
   entity->collider = nikola::physics_body_add_collider(entity->body, coll_desc);
 }

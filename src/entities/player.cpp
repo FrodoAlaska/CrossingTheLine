@@ -1,5 +1,5 @@
 #include "entity.h"
-#include "level.h"
+#include "levels/level.h"
 
 #include <nikola/nikola.h>
 
@@ -13,7 +13,7 @@ void player_create(Entity* player, Level* lvl, const nikola::Vec3& start_pos) {
                 start_pos, 
                 nikola::Vec3(1.0f), 
                 ENTITY_PLAYER, 
-                nikola::PHYSICS_BODY_KINEMATIC);
+                nikola::PHYSICS_BODY_DYNAMIC);
 }
 
 void player_update(Entity& player) {

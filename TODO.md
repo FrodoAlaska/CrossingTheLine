@@ -1,6 +1,6 @@
 # TODO 
 
-- Setup the github page
+- Tile manager
 
 - Find a way to prevent the player from going outside of the level. Some road blocks on the edges? Invisible blocks? Anything to prevent the player from leaving the area and falling to their depths. 
 

@@ -1,5 +1,5 @@
 #include "entity.h"
-#include "level.h"
+#include "levels/level.h"
 
 #include <nikola/nikola.h>
 

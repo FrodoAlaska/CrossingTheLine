@@ -5,7 +5,9 @@ textures
 cubemaps
 
 :: MODEL @models 
-models
+$models
+vehicles
+objects
 
 # :: SHADER @shaders
 # shaders

@@ -26,6 +26,7 @@ enum EntityType {
   ENTITY_TILE      = 0x60,
   ENTITY_END_POINT = 0x80,
   ENTITY_OBJECT    = 0x80,
+  ENTITY_COIN      = 0x100,
 };
 /// EntityType 
 /// ----------------------------------------------------------------------
@@ -33,7 +34,7 @@ enum EntityType {
 /// ----------------------------------------------------------------------
 /// VehicleType
 enum VehicleType {
-  VEHICLE_CAR, 
+  VEHICLE_CAR,
   VEHICLE_TRUCK,
 };
 /// VehicleType
@@ -44,6 +45,7 @@ enum VehicleType {
 enum TileType {
   TILE_ROAD, 
   TILE_PAVIMENT,
+  TILE_RAILING,
 };
 /// TileType 
 /// ----------------------------------------------------------------------
@@ -129,4 +131,26 @@ void vehicle_set_active(Vehicle& v, const bool active);
 void tile_create(Tile* tile, Level* lvl, const TileType type, const nikola::Vec3& pos);
 
 /// Tile functions
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Entity manager functions
+
+void entity_manager_create(Level* level_ref);
+
+void entity_manager_destroy();
+
+void entity_manager_load();
+
+void entity_manager_save();
+
+void entity_manager_reset();
+
+void entity_manager_update();
+
+void entity_manager_render();
+
+void entity_manager_render_gui();
+
+/// Entity manager functions
 /// ----------------------------------------------------------------------
