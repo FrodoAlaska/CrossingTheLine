@@ -45,9 +45,6 @@ static void init_resources(Level* lvl) {
   lvl->resources[LEVEL_RESOURCE_RAILING] = nikola::resources_push_model(lvl->resource_group, "models/Road-Blocker.nbrmodel");
 }
 
-static void write_nklvl_file(Level* lvl) {
-}
-
 static void reset_level(Level* lvl) {
   // Reset variables
   lvl->is_paused = false; 
@@ -182,6 +179,9 @@ Level* level_create(nikola::Window* window) {
   // Entity manager init
   entity_manager_create(lvl);
 
+  // Tiles init
+  tile_manager_create(lvl);
+
   // Lights init
   lvl->frame.dir_light.direction.y = -1.0f;
 
@@ -205,8 +205,11 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
   // Main camera init
   lvl->main_camera.position = lvl->nkbin.start_position;
 
-  // Entities init (from file)
+  // Load entities
   entity_manager_load();
+
+  // Load tiles
+  tile_manager_load();
 
   NIKOLA_PERF_TIMER_END(timer, (nikola::filepath_filename(path) + " loaded").c_str());
   return true;
@@ -228,12 +231,9 @@ void level_unload(Level* lvl) {
  
   // Entities destroy
   entity_manager_destroy(); 
-  
+
   // Tiles destroy
-  for(auto& tile : lvl->tiles) {
-    nikola::physics_body_destroy(tile.entity.body);
-  }
-  lvl->tiles.clear();
+  tile_manager_destroy();
 }
 
 void level_update(Level* lvl) {
@@ -247,42 +247,6 @@ void level_update(Level* lvl) {
     
     nikola::physics_world_set_paused(lvl->has_editor);
     nikola::input_cursor_show(lvl->has_editor);
-  }
-
-  // Add a tile
-  if(lvl->has_editor) {
-    // @TODO: Please no. It works, but please no. It's SO bad-looking. 
-    // Like, honestly, make a tile manager or something. This is AWFUL. 
-
-    float step = TILE_SIZE;
-
-    if(nikola::input_key_pressed(nikola::KEY_UP)) {
-      lvl->debug_selection.x += step;
-    }
-    else if(nikola::input_key_pressed(nikola::KEY_DOWN)) {
-      lvl->debug_selection.x -= step;
-    }
-
-    if(nikola::input_key_pressed(nikola::KEY_RIGHT)) {
-      lvl->debug_selection.z += step;
-    }
-    else if(nikola::input_key_pressed(nikola::KEY_LEFT)) {
-      lvl->debug_selection.z -= step;
-    }
-
-    lvl->debug_selection.x = nikola::clamp_float(lvl->debug_selection.x, -24.0f, 40.0f);
-    lvl->debug_selection.z = nikola::clamp_float(lvl->debug_selection.z, -22.0f, 42.0f);
-
-    if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_Q)) {
-      lvl->tiles.resize(lvl->tiles.size() + 1);
-      tile_create(&lvl->tiles[lvl->tiles.size() - 1], lvl, TILE_ROAD, lvl->debug_selection);
-    }
-    else if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_E)) {
-      lvl->tiles.resize(lvl->tiles.size() + 1);
-
-      // We elevate the paviment a bit to make it look more "realistic"
-      tile_create(&lvl->tiles[lvl->tiles.size() - 1], lvl, TILE_PAVIMENT, lvl->debug_selection + nikola::Vec3(0.0f, 0.3f, 0.0f));
-    }
   }
 
   // Toggle pause mode
@@ -303,6 +267,11 @@ void level_update(Level* lvl) {
 
   // Update state
 
+  // Update tiles
+  if(lvl->has_editor) {
+    tile_manager_update();
+  }
+
   // Update entities
   entity_manager_update();
 
@@ -318,14 +287,8 @@ void level_render(Level* lvl) {
   // Render entities
   entity_manager_render();
 
-  // Debug rendering
-  
-  if(lvl->debug_mode) {
-    // Debug tile selection
-    nikola::transform_translate(transform, lvl->debug_selection);
-    nikola::transform_scale(transform, nikola::Vec3(TILE_SIZE, 1.0f, TILE_SIZE));
-    nikola::renderer_debug_cube(transform, nikola::Vec4(1.0f, 0.0f, 1.0f, 0.2f));
-  }
+  // Render the tiles
+  tile_manager_render(); 
 }
 
 void level_render_hud(Level* lvl) {
@@ -369,46 +332,7 @@ void level_render_gui(Level* lvl) {
   entity_manager_render_gui();
 
   // Tiles
-  if(ImGui::CollapsingHeader("Tiles")) {
-    ImGui::Text("Tiles count: %zu", lvl->tiles.size());
-    
-    for(nikola::sizei i = 0; i < lvl->tiles.size(); i++) {
-      nikola::String name = ("Tile " + std::to_string(i)); 
-      Entity* entity      = &lvl->tiles[i].entity;
-      
-      ImGui::SeparatorText(name.c_str());
-      ImGui::PushID(name.c_str());
-
-      // Position 
-      nikola::Vec3 position = nikola::physics_body_get_position(entity->body);
-      if(ImGui::DragFloat3("Position", &position[0], TILE_SIZE)) {
-        nikola::physics_body_set_position(entity->body, position);
-        entity->start_pos = position;
-      }
-      
-      // Rotation
-      float rotation = nikola::physics_body_get_rotation(entity->body).w * nikola::RAD2DEG;
-      if(ImGui::DragFloat("Rotation", &rotation, 45.0f)) {
-        nikola::physics_body_set_rotation(entity->body, nikola::Vec3(0.0f, 1.0f, 0.0f), rotation * nikola::DEG2RAD);
-      }
-
-      // Active 
-      ImGui::Checkbox("Active", &entity->is_active);
-
-      // Type
-      int type = (int)lvl->tiles[i].type;
-      if(ImGui::Combo("Type", &type, "Road\0Paviment\0Railing\0\0")) {
-        lvl->tiles[i].type = (TileType)type;
-      }
-      
-      // Remove the end point
-      if(ImGui::Button("Remove")) {
-        lvl->tiles.erase(lvl->tiles.begin() + i);
-      }
-      
-      ImGui::PopID();
-    }
-  }
+  tile_manager_render_gui();
 
   // Lights
   if(ImGui::CollapsingHeader("Lights")) {
@@ -451,7 +375,10 @@ void level_render_gui(Level* lvl) {
     // Save the level
     if(ImGui::Button("Save level")) {
       nikola::filepath_set_filename(lvl->nkbin.path, lvl_path); 
+
       entity_manager_save();
+      tile_manager_save();
+      nklvl_file_save(lvl->nkbin);
     }
 
     // Reset the level

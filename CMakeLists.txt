@@ -54,6 +54,7 @@ set(PROJECT_SOURCES
   ${PROJECT_SRC_DIR}/entities/vehicle.cpp
   ${PROJECT_SRC_DIR}/entities/tile.cpp
   ${PROJECT_SRC_DIR}/entities/entity_manager.cpp
+  ${PROJECT_SRC_DIR}/entities/tile_manager.cpp
   
   # Level
   ${PROJECT_SRC_DIR}/levels/level.cpp

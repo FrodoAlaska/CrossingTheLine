@@ -45,14 +45,6 @@ const bool nklvl_file_load(NKLevelFile* nklvl, const nikola::FilePath& path) {
     nikola::file_read_bytes(file, &nklvl->end_points[i].scale[0], sizeof(nikola::Vec3));
   }
 
-  // Read the tiles
-  
-  nikola::file_read_bytes(file, &nklvl->tiles_count, sizeof(nklvl->tiles_count));
-  for(nikola::sizei i = 0; i < nklvl->tiles_count; i++) {
-    nikola::file_read_bytes(file, &nklvl->tiles[i].position[0], sizeof(nikola::Vec3));
-    nikola::file_read_bytes(file, &nklvl->tiles[i].tile_type, sizeof(nikola::u8));
-  }
-
   // Read the vehicles
 
   nikola::file_read_bytes(file, &nklvl->vehicles_count, sizeof(nklvl->vehicles_count));
@@ -61,6 +53,14 @@ const bool nklvl_file_load(NKLevelFile* nklvl, const nikola::FilePath& path) {
     nikola::file_read_bytes(file, &nklvl->vehicles[i].direction[0], sizeof(nikola::Vec3));
     nikola::file_read_bytes(file, &nklvl->vehicles[i].acceleration, sizeof(float));
     nikola::file_read_bytes(file, &nklvl->vehicles[i].vehicle_type, sizeof(nikola::u8));
+  }
+
+  // Read the tiles
+  
+  nikola::file_read_bytes(file, &nklvl->tiles_count, sizeof(nklvl->tiles_count));
+  for(nikola::sizei i = 0; i < nklvl->tiles_count; i++) {
+    nikola::file_read_bytes(file, &nklvl->tiles[i].position[0], sizeof(nikola::Vec3));
+    nikola::file_read_bytes(file, &nklvl->tiles[i].tile_type, sizeof(nikola::u8));
   }
 
   // Always remember to close the file
@@ -92,15 +92,6 @@ void nklvl_file_save(const NKLevelFile& nklvl) {
     nikola::file_write_bytes(file, &nklvl.end_points[i].scale[0], sizeof(nikola::Vec3));
   }
 
-  // Write the tiles 
-
-  nikola::file_write_bytes(file, &nklvl.tiles_count, sizeof(nklvl.tiles_count));
-
-  for(nikola::sizei i = 0; i < nklvl.tiles_count; i++) {
-    nikola::file_write_bytes(file, &nklvl.tiles[i].position[0], sizeof(nikola::Vec3));
-    nikola::file_write_bytes(file, &nklvl.tiles[i].tile_type, sizeof(nikola::u8));
-  }
-
   // Wrtie the vehicles
 
   nikola::file_write_bytes(file, &nklvl.vehicles_count, sizeof(nklvl.vehicles_count));
@@ -113,6 +104,15 @@ void nklvl_file_save(const NKLevelFile& nklvl) {
     nikola::file_write_bytes(file, &nklvl.vehicles[i].direction[0], sizeof(nikola::Vec3));
     nikola::file_write_bytes(file, &nklvl.vehicles[i].acceleration, sizeof(float));
     nikola::file_write_bytes(file, &nklvl.vehicles[i].vehicle_type, sizeof(nikola::u8));
+  }
+
+  // Write the tiles 
+
+  nikola::file_write_bytes(file, &nklvl.tiles_count, sizeof(nklvl.tiles_count));
+
+  for(nikola::sizei i = 0; i < nklvl.tiles_count; i++) {
+    nikola::file_write_bytes(file, &nklvl.tiles[i].position[0], sizeof(nikola::Vec3));
+    nikola::file_write_bytes(file, &nklvl.tiles[i].tile_type, sizeof(nikola::u8));
   }
 
   // Always remember to close the file

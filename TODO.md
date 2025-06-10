@@ -1,7 +1,5 @@
 # TODO 
 
-- Tile manager
-
 - Find a way to prevent the player from going outside of the level. Some road blocks on the edges? Invisible blocks? Anything to prevent the player from leaving the area and falling to their depths. 
 
 - A better and improved system to switch between levels. Nothing too fancy or final. Just the foundation.

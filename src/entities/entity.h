@@ -154,3 +154,23 @@ void entity_manager_render_gui();
 
 /// Entity manager functions
 /// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Tile manager functions
+
+void tile_manager_create(Level* level_ref);
+
+void tile_manager_destroy();
+
+void tile_manager_load(); 
+
+void tile_manager_save();
+
+void tile_manager_update();
+
+void tile_manager_render();
+
+void tile_manager_render_gui();
+
+/// Tile manager functions
+/// ----------------------------------------------------------------------

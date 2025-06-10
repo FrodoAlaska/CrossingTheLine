@@ -14,7 +14,6 @@ struct EntityManager {
   
   nikola::DynamicArray<Entity> end_points;
   nikola::DynamicArray<Vehicle> vehicles;
-  nikola::DynamicArray<Tile> tiles;
 };
 
 static EntityManager s_entt;
@@ -136,18 +135,6 @@ void entity_manager_load() {
                   ENTITY_END_POINT);
   }
 
-  // Tiles init
-  
-  s_entt.tiles.resize(nklvl->tiles_count);
-  for(nikola::sizei i = 0; i < s_entt.tiles.size(); i++) {
-    Tile* tile = &s_entt.tiles[i];
-
-    tile_create(tile,  
-                s_entt.level_ref, 
-                (TileType)nklvl->tiles[i].tile_type, 
-                nklvl->tiles[i].position);
-  }
-
   // Vehicles init
   
   s_entt.vehicles.resize(nklvl->vehicles_count);
@@ -180,16 +167,6 @@ void entity_manager_save() {
     nklvl->end_points[i].scale    = nikola::collider_get_extents(point->collider);
   }
 
-  // Tiles init
-  
-  nklvl->tiles_count = s_entt.tiles.size();
-  for(nikola::sizei i = 0; i < s_entt.tiles.size(); i++) {
-    Tile* tile = &s_entt.tiles[i];
-
-    nklvl->tiles[i].position  = nikola::physics_body_get_position(tile->entity.body);
-    nklvl->tiles[i].tile_type = (nikola::u8)tile->type;
-  }
-
   // Vehicles init
   
   nklvl->vehicles_count = s_entt.vehicles.size();
@@ -220,7 +197,6 @@ void entity_manager_update() {
 }
 
 void entity_manager_render() {
-  nikola::ResourceID mesh_id  = s_entt.level_ref->resources[LEVEL_RESOURCE_CUBE];
   nikola::Transform transform = {}; 
 
   // Render vehicles
@@ -237,30 +213,6 @@ void entity_manager_render() {
       nikola::renderer_debug_collider(v.entity.collider, nikola::Vec3(1.0f, 0.0f, 0.0f));
     }
   }
-  
-  // Render tiles
-
-  for(auto& tile : s_entt.tiles) {
-    transform = nikola::physics_body_get_transform(tile.entity.body);
-    nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
-
-    switch(tile.type) {
-      case TILE_PAVIMENT:
-        nikola::renderer_queue_mesh(mesh_id, transform, s_entt.level_ref->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT]);
-        break;
-      case TILE_ROAD:
-        nikola::renderer_queue_mesh(mesh_id, transform, s_entt.level_ref->resources[LEVEL_RESOURCE_MATERIAL_ROAD]);
-        break;
-      case TILE_RAILING:
-        nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_RAILING], transform);
-        break;
-    }
-
-    if(s_entt.level_ref->debug_mode) {
-      nikola::renderer_debug_collider(tile.entity.collider, nikola::Vec3(1.0f, 0.0f, 0.0f));
-    }
-  }
-
 
   // Debug rendering
   
@@ -414,7 +366,6 @@ void entity_manager_render_gui() {
                      dir);
     }
   }
-
 }
 
 /// Entity manager functions

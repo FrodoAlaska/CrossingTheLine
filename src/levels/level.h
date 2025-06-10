@@ -56,16 +56,6 @@ struct NKLevelFile {
   nikola::sizei end_points_count = 0;
   NKEntity end_points[END_POINTS_MAX];
 
-  // Tiles
-
-  struct NKTile {
-    nikola::Vec3 position;
-    nikola::u8 tile_type;
-  };
-
-  nikola::sizei tiles_count = 0; 
-  NKTile tiles[TILES_MAX];
-
   // Vehicles
 
   struct NKVehicle {
@@ -78,6 +68,16 @@ struct NKLevelFile {
 
   nikola::sizei vehicles_count = 0;
   NKVehicle vehicles[VEHICLES_MAX];
+
+  // Tiles
+
+  struct NKTile {
+    nikola::Vec3 position;
+    nikola::u8 tile_type;
+  };
+
+  nikola::sizei tiles_count = 0; 
+  NKTile tiles[TILES_MAX];
 };
 /// NKLevelFile
 /// ----------------------------------------------------------------------
@@ -100,10 +100,6 @@ struct Level {
   nikola::ResourceGroupID resource_group;
   nikola::ResourceID resources[LEVEL_RESOURCES_MAX];
 
-  // Entities
-
-  nikola::DynamicArray<Tile> tiles;
-
   // State
 
   bool has_lost  = false;
@@ -114,8 +110,6 @@ struct Level {
   
   bool has_editor = false;
   bool debug_mode = false;
-
-  nikola::Vec3 debug_selection = nikola::Vec3(10.0f, -3.0f, 10.0f);
 };
 /// Level
 /// ----------------------------------------------------------------------
