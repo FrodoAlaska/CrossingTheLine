@@ -10,7 +10,7 @@
 struct EntityManager {
   Level* level_ref;
 
-  Entity player; 
+  Entity player, coin; 
   
   nikola::DynamicArray<Entity> end_points;
   nikola::DynamicArray<Vehicle> vehicles;
@@ -39,6 +39,12 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
 
     other->is_active = false; 
     nikola::physics_body_set_awake(other->body, false);
+  }
+  // Coin 
+  else if(other->type == ENTITY_COIN && other->is_active) {
+    // Eat the coin
+    other->is_active = false; 
+    lvl->has_coin    = false;
   }
 }
 
@@ -93,6 +99,14 @@ void entity_manager_create(Level* level_ref) {
 
   // Player init 
   player_create(&s_entt.player, level_ref, level_ref->main_camera.position);
+ 
+  // Coin init
+  entity_create(&s_entt.coin, 
+                s_entt.level_ref, 
+                nikola::Vec3(10.0f, -2.0f, 10.0f),
+                nikola::Vec3(0.8f),
+                ENTITY_COIN, 
+                nikola::PHYSICS_BODY_KINEMATIC);
 
   // Physics world callback init
   nikola::physics_world_set_collision_callback(on_entity_collision, nullptr); 
@@ -101,6 +115,9 @@ void entity_manager_create(Level* level_ref) {
 void entity_manager_destroy() {
   // Player destroy
   nikola::physics_body_destroy(s_entt.player.body);
+
+  // Coin destroy 
+  nikola::physics_body_destroy(s_entt.coin.body);
 
   // End points destroy
   for(auto& point : s_entt.end_points) {
@@ -120,7 +137,20 @@ void entity_manager_load() {
   NKLevelFile* nklvl = &s_entt.level_ref->nkbin;
 
   // Player init
-  player_create(&s_entt.player, s_entt.level_ref, nklvl->start_position);
+  nikola::physics_body_set_position(s_entt.player.body, nklvl->start_position);
+
+  // Coin init
+  
+  nikola::physics_body_set_position(s_entt.coin.body, nklvl->coin_position); 
+  s_entt.coin.is_active = nklvl->has_coin;
+  
+  if(s_entt.coin.is_active) {
+    nikola::collider_set_extents(s_entt.coin.collider, nikola::Vec3(1.4f, 0.5f, 3.5f));
+    nikola::collider_set_local_position(s_entt.coin.collider, nikola::Vec3(0.0f, 0.0f, 1.6f));
+    
+    nikola::physics_body_set_rotation(s_entt.coin.body, nikola::Vec3(1.0f, 0.0f, 0.0f), 4.7f);
+    nikola::physics_body_set_angular_velocity(s_entt.coin.body, nikola::Vec3(0.0f, 1.0f, 0.0f));
+  }
 
   // End points init
 
@@ -154,10 +184,15 @@ void entity_manager_save() {
   // For better visualization 
   NKLevelFile* nklvl = &s_entt.level_ref->nkbin;
 
-  // Player init
+  // Save the player
   nklvl->start_position = nikola::physics_body_get_position(s_entt.player.body); 
 
-  // End points init
+  // Save the coin 
+
+  nklvl->coin_position  = nikola::physics_body_get_position(s_entt.coin.body); 
+  nklvl->has_coin       = s_entt.coin.is_active;
+
+  // Save the end points
 
   nklvl->end_points_count = s_entt.end_points.size();
   for(nikola::sizei i = 0; i < s_entt.end_points.size(); i++) {
@@ -167,7 +202,7 @@ void entity_manager_save() {
     nklvl->end_points[i].scale    = nikola::collider_get_extents(point->collider);
   }
 
-  // Vehicles init
+  // Save the vehicles
   
   nklvl->vehicles_count = s_entt.vehicles.size();
   for(nikola::sizei i = 0; i < s_entt.vehicles.size(); i++) {
@@ -214,6 +249,15 @@ void entity_manager_render() {
     }
   }
 
+  // Render the coin
+  
+  transform = nikola::physics_body_get_transform(s_entt.coin.body);
+  
+  if(s_entt.coin.is_active) {
+    nikola::transform_scale(transform, nikola::Vec3(0.02f));
+    nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_COIN], transform);
+  }
+
   // Debug rendering
   
   if(s_entt.level_ref->debug_mode) {
@@ -226,6 +270,9 @@ void entity_manager_render() {
     for(auto& point : s_entt.end_points) {
       nikola::renderer_debug_collider(point.collider);
     }
+
+    // Coin 
+    nikola::renderer_debug_collider(s_entt.coin.collider); 
   }
 }
 
@@ -234,6 +281,27 @@ void entity_manager_render_gui() {
   if(ImGui::CollapsingHeader("Player")) {
     nikola::gui_edit_physics_body("Player body", s_entt.player.body);
     nikola::gui_edit_collider("Player collider", s_entt.player.collider);
+  }
+
+  // Coin
+  if(ImGui::CollapsingHeader("Coin")) {
+    nikola::gui_edit_physics_body("Coin body", s_entt.coin.body);
+    nikola::gui_edit_collider("Coin collider", s_entt.coin.collider);
+
+    // Collider offset
+    nikola::Vec3 offset = nikola::collider_get_local_transform(s_entt.coin.collider).position;
+    if(ImGui::DragFloat3("Collider offset", &offset[0], 0.1f)) {
+      nikola::collider_set_local_position(s_entt.coin.collider, offset);
+    }
+
+    // Rotation
+    nikola::Vec4 rotation = nikola::physics_body_get_rotation(s_entt.coin.body);
+    if(ImGui::DragFloat4("Rotation Axis", &rotation[0], 0.1f)) {
+      nikola::physics_body_set_rotation(s_entt.coin.body, nikola::Vec3(rotation), rotation.w);
+    }
+
+    // Active state
+    ImGui::Checkbox("Active", &s_entt.coin.is_active);
   }
   
   // Points

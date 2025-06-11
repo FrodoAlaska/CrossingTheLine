@@ -27,9 +27,9 @@ enum LevelResourceType {
   LEVEL_RESOURCE_MATERIAL_PAVIMENT = 1,
   LEVEL_RESOURCE_MATERIAL_ROAD     = 2,
 
-  LEVEL_RESOURCE_CAR     = 3,
-  LEVEL_RESOURCE_TRUCK   = 4,
-  LEVEL_RESOURCE_RAILING = 5,
+  LEVEL_RESOURCE_CAR   = 3,
+  LEVEL_RESOURCE_TRUCK = 4,
+  LEVEL_RESOURCE_COIN  = 5,
 
   LEVEL_RESOURCE_FONT = 6,
 
@@ -43,8 +43,18 @@ enum LevelResourceType {
 struct NKLevelFile {
   nikola::FilePath path;
 
+  // Versions
+
   nikola::u8 major_version, minor_version;
+  
+  // Player 
+
   nikola::Vec3 start_position;
+
+  // Coin
+
+  nikola::Vec3 coin_position; 
+  bool has_coin = false;
 
   // End points
   
@@ -105,7 +115,8 @@ struct Level {
   bool has_lost  = false;
   bool has_won   = false;
   bool is_paused = false;
-  
+  bool has_coin  = true;
+
   // Debug stuff
   
   bool has_editor = false;

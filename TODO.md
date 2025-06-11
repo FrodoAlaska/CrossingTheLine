@@ -6,8 +6,6 @@
 
 - Improved HUD.
 
-- Add the collectibles to the game.
-
 - Try to polish the first 5 levels until we are sure everything is good. Because if we move to the next few levels, we at least have a standard and a process. It's essentially going to all be about the level design and not much about the implementation of certain 
 game mechanics.
 

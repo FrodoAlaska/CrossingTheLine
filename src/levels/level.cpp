@@ -40,9 +40,9 @@ static void init_resources(Level* lvl) {
 
   // Models init
 
-  lvl->resources[LEVEL_RESOURCE_CAR]     = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_TRUCK]   = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_RAILING] = nikola::resources_push_model(lvl->resource_group, "models/Road-Blocker.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_CAR]   = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_TRUCK] = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_COIN]  = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
 }
 
 static void reset_level(Level* lvl) {
@@ -183,7 +183,9 @@ Level* level_create(nikola::Window* window) {
   tile_manager_create(lvl);
 
   // Lights init
-  lvl->frame.dir_light.direction.y = -1.0f;
+  lvl->frame.dir_light.direction = nikola::Vec3(-1.0f);
+  lvl->frame.dir_light.color     = nikola::Vec3(1.0f);
+  lvl->frame.ambient             = nikola::Vec3(0.5f);
 
   return lvl;
 }

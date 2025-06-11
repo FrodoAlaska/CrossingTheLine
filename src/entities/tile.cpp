@@ -11,7 +11,7 @@ void tile_create(Tile* tile, Level* lvl, const TileType type, const nikola::Vec3
   entity_create(&tile->entity, 
                 lvl, 
                 pos, 
-                nikola::Vec3(TILE_SIZE, 1.0f, TILE_SIZE), 
+                nikola::Vec3(TILE_SIZE, 1.0f, TILE_SIZE),
                 ENTITY_TILE);
   
   // Tile variables init 

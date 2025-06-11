@@ -26,7 +26,7 @@ void tile_manager_create(Level* level_ref) {
   s_tiles.level_ref = level_ref;
 
   // Debug selection init
-  s_tiles.debug_selection = nikola::Vec3(TILE_SIZE, -3.0f, TILE_SIZE);
+  s_tiles.debug_selection = nikola::Vec3(TILE_SIZE, -2.0f, TILE_SIZE);
 }
 
 void tile_manager_destroy() {
@@ -88,11 +88,7 @@ void tile_manager_update() {
     s_tiles.debug_selection.z -= step;
   }
 
-  // Clamping the positions
-  s_tiles.debug_selection.x = nikola::clamp_float(s_tiles.debug_selection.x, -24.0f, 40.0f);
-  s_tiles.debug_selection.z = nikola::clamp_float(s_tiles.debug_selection.z, -22.0f, 42.0f);
-
-  if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_Q)) {
+  if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_1)) {
     s_tiles.tiles.resize(s_tiles.tiles.size() + 1);
 
     tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], 
@@ -100,7 +96,7 @@ void tile_manager_update() {
                 TILE_ROAD, 
                 s_tiles.debug_selection);
   }
-  else if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_E)) {
+  else if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_2)) {
     s_tiles.tiles.resize(s_tiles.tiles.size() + 1);
 
     // We elevate the paviment a bit to make it look more "realistic"
@@ -119,22 +115,16 @@ void tile_manager_render() {
 
   for(auto& tile : s_tiles.tiles) {
     transform = nikola::physics_body_get_transform(tile.entity.body);
-    nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
 
     switch(tile.type) {
       case TILE_PAVIMENT:
+        nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
         nikola::renderer_queue_mesh(mesh_id, transform, s_tiles.level_ref->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT]);
         break;
       case TILE_ROAD:
+        nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
         nikola::renderer_queue_mesh(mesh_id, transform, s_tiles.level_ref->resources[LEVEL_RESOURCE_MATERIAL_ROAD]);
         break;
-      case TILE_RAILING:
-        nikola::renderer_queue_model(s_tiles.level_ref->resources[LEVEL_RESOURCE_RAILING], transform);
-        break;
-    }
-
-    if(s_tiles.level_ref->debug_mode) {
-      nikola::renderer_debug_collider(tile.entity.collider, nikola::Vec3(1.0f, 0.0f, 0.0f));
     }
   }
   
@@ -163,9 +153,15 @@ void tile_manager_render_gui() {
 
       // Position 
       nikola::Vec3 position = nikola::physics_body_get_position(entity->body);
-      if(ImGui::DragFloat3("Position", &position[0], TILE_SIZE)) {
+      if(ImGui::DragFloat3("Position", &position[0], 0.1f)) {
         nikola::physics_body_set_position(entity->body, position);
         entity->start_pos = position;
+      }
+      
+      // Scale
+      nikola::Vec3 scale = nikola::collider_get_extents(entity->collider);
+      if(ImGui::DragFloat3("Scale", &scale[0], 0.1f)) {
+        nikola::collider_set_extents(entity->collider, scale);
       }
       
       // Rotation

@@ -37,6 +37,11 @@ const bool nklvl_file_load(NKLevelFile* nklvl, const nikola::FilePath& path) {
   // Read the starting position 
   nikola::file_read_bytes(file, &nklvl->start_position[0], sizeof(nklvl->start_position));
 
+  // Read the coin
+  
+  nikola::file_read_bytes(file, &nklvl->coin_position[0], sizeof(nklvl->coin_position));
+  nikola::file_read_bytes(file, &nklvl->has_coin, sizeof(nklvl->has_coin));
+
   // Read the end points
   
   nikola::file_read_bytes(file, &nklvl->end_points_count, sizeof(nklvl->end_points_count));
@@ -82,6 +87,11 @@ void nklvl_file_save(const NKLevelFile& nklvl) {
 
   // Wrtie the starting position 
   nikola::file_write_bytes(file, &nklvl.start_position[0], sizeof(nklvl.start_position));
+  
+  // Write the coin
+  
+  nikola::file_write_bytes(file, &nklvl.coin_position[0], sizeof(nklvl.coin_position));
+  nikola::file_write_bytes(file, &nklvl.has_coin, sizeof(nklvl.has_coin));
 
   // Wrtie the end points
   
