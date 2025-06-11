@@ -10,10 +10,7 @@
 game mechanics.
 
 - Get some art:
-    - A better and suitable skybox
     - Truck 
-    - Road blocks 
-    - Better road tiles
     - etc...
 
 - Get some test sounds and attach them to audio sources for the cars.

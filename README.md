@@ -27,3 +27,13 @@ Since there are only 4 mechanics to work with, I need to make it count. And in o
 Besides the mechanics above that I'm pretty confident about, here are a few others that might or might not make the cut. 
 
 - Road blocks:
+
+## Credits 
+
+A bunch of stuff - https://kenney.nl 
+
+Key - https://sketchfab.com/konvenienzapps
+
+Tile textures - https://www.cgbookcase.com/
+
+Skybox - https://www.zfight.com

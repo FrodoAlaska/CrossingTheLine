@@ -25,15 +25,15 @@ static void init_resources(Level* lvl) {
   nikola::resources_push_dir(lvl->resource_group, "textures");
 
   // Skybox init
-  lvl->frame.skybox_id = nikola::resources_push_skybox(lvl->resource_group, "cubemaps/accurate_night.nbrcubemap");
+  lvl->frame.skybox_id = nikola::resources_push_skybox(lvl->resource_group, "cubemaps/dreamy_sky.nbrcubemap");
 
   // Meshes init
   lvl->resources[LEVEL_RESOURCE_CUBE] = nikola::resources_push_mesh(lvl->resource_group, nikola::GEOMETRY_CUBE);
 
   // Materials init
   
-  lvl->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT] = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "paviment_2"));
-  lvl->resources[LEVEL_RESOURCE_MATERIAL_ROAD]     = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "road_1"));
+  lvl->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT] = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "paviment"));
+  lvl->resources[LEVEL_RESOURCE_MATERIAL_ROAD]     = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "road"));
 
   // Font init 
   lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold");
@@ -184,7 +184,7 @@ Level* level_create(nikola::Window* window) {
 
   // Lights init
   lvl->frame.dir_light.direction = nikola::Vec3(-1.0f);
-  lvl->frame.dir_light.color     = nikola::Vec3(1.0f);
+  lvl->frame.dir_light.color     = nikola::Vec3(0.7f);
   lvl->frame.ambient             = nikola::Vec3(0.5f);
 
   return lvl;
