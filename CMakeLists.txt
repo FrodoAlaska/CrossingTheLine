@@ -59,6 +59,9 @@ set(PROJECT_SOURCES
   # Level
   ${PROJECT_SRC_DIR}/levels/level.cpp
   ${PROJECT_SRC_DIR}/levels/nklvl.cpp
+
+  # UI 
+  ${PROJECT_SRC_DIR}/ui/ui_text.cpp
 )
 ############################################################
 

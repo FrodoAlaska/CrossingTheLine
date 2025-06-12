@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entities\entity.h"
+#include "ui\ui.h"
 
 #include <nikola/nikola.h>
 

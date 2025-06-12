@@ -157,6 +157,8 @@ Level* level_create(nikola::Window* window) {
     .move_func    = keyboard_camera_move_func,
   };
   nikola::camera_create(&lvl->main_camera, cam_desc);
+  lvl->main_camera.yaw   = 0.00f;
+  lvl->main_camera.pitch = -5.3f;
 
   // GUI camera init
   nikola::camera_create(&lvl->gui_camera, cam_desc);
@@ -313,8 +315,6 @@ void level_render_hud(Level* lvl) {
     nikola::batch_render_text(font, "Congratulations!!!", half_size, 64.0f, winner_coler);
     nikola::batch_render_text(font, "[ENTER] Continue", half_size + nikola::Vec2(0.0f, 86.0f), 64.0f, winner_coler);
   }
-
-  nikola::batch_render_fps(font, nikola::Vec2(10.0f, 30.0f), 32.0f, nikola::Vec4(1.0f));
 }
 
 void level_render_gui(Level* lvl) { 

@@ -5,6 +5,7 @@
 #include <imgui/imgui_stdlib.h>
 
 #include "levels/level.h"
+#include "ui/ui.h"
 
 /// ----------------------------------------------------------------------
 /// Consts
@@ -22,6 +23,8 @@ struct nikola::App {
   nikola::FilePath level_paths[LEVELS_MAX];
   int current_level = 0; 
   Level* level      = nullptr;
+
+  UIText menu_text;
 };
 /// App
 /// ----------------------------------------------------------------------
@@ -62,7 +65,7 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
 
   // Window init
   app->window = window;
-  nikola::window_set_position(window, 100, 50);
+  nikola::window_set_position(window, 100, 100);
 
   // GUI init
   nikola::gui_init(window);
@@ -77,6 +80,16 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
   nikola::physics_world_set_iterations_count(5);
 
+  // UI text init
+  UITextDesc text_desc = {
+    .string    = "Crossing The Line",
+    .font_id   = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"),
+    .font_size = 50.0f,
+    .anchor    = UI_ANCHOR_TOP_CENTER,
+    .color     = nikola::Vec4(1.0f, 0.0f, 0.0f, 0.0f),
+  };
+  ui_text_create(&app->menu_text, window, text_desc);
+
   return app;
 }
 
@@ -87,6 +100,8 @@ void app_shutdown(nikola::App* app) {
   delete app;
 }
 
+static bool can_start = false;
+
 void app_update(nikola::App* app, const nikola::f64 delta_time) {
   // Quit the application when the specified exit key is pressed
   if(nikola::input_key_pressed(nikola::KEY_ESCAPE)) {
@@ -94,7 +109,9 @@ void app_update(nikola::App* app, const nikola::f64 delta_time) {
     return;
   }
 
+
   // Update the current level
+  app->level->main_camera.is_active = can_start; 
   level_update(app->level);
 
   // Level switching if the level is done
@@ -118,6 +135,7 @@ void app_render(nikola::App* app) {
   
   nikola::batch_renderer_begin();
   level_render_hud(app->level);
+  ui_text_render_animation(app->menu_text, UI_TEXT_ANIMATION_FADE_IN, 30.0f);
   nikola::batch_renderer_end();
 }
 
