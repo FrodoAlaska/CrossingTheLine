@@ -31,6 +31,18 @@ enum UITextAnimation {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// Callbacks
+
+// Forward declarations
+struct UILayout;
+struct UIText;
+
+using OnUILayoutClickFunc = void(*)(UILayout& layout, UIText& text, void* user_data);
+
+/// Callbacks
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// UIText
 struct UIText {
   nikola::Vec2 position, offset;
@@ -50,6 +62,7 @@ struct UIText {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// UITextDesc
 struct UITextDesc {
   nikola::String string;
 
@@ -61,6 +74,26 @@ struct UITextDesc {
 
   nikola::Vec4 color = nikola::Vec4(1.0f);
 };
+/// UITextDesc
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// UILayout
+struct UILayout {
+  nikola::ResourceID font_id;
+  nikola::Window* window_ref;
+
+  nikola::DynamicArray<UIText> texts;
+
+  UIAnchor current_anchor     = UI_ANCHOR_TOP_LEFT;
+  nikola::Vec2 extra_offset   = nikola::Vec2(0.0f);
+  nikola::Vec2 current_offset = nikola::Vec2(0.0f);
+  nikola::u32 current_option  = 0;
+
+  OnUILayoutClickFunc click_func = nullptr;
+  void* user_data                = nullptr;
+};
+/// UILayout
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -79,4 +112,26 @@ void ui_text_render(const UIText& text);
 void ui_text_render_animation(UIText& text, const UITextAnimation anim_type, const float duration);
 
 /// UIText functions
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// UILayout functions
+
+void ui_layout_create(UILayout* layout, 
+                      nikola::Window* window_ref, 
+                      const nikola::ResourceID& font_id, 
+                      const OnUILayoutClickFunc& click_func = nullptr, 
+                      const void* user_data = nullptr);
+
+void ui_layout_begin(UILayout& layout, const UIAnchor anchor, const nikola::Vec2& offset);
+
+void ui_layout_end(UILayout& layout);
+
+void ui_layout_push_text(UILayout& layout, const nikola::String& str, const float size, const nikola::Vec4& color);
+
+void ui_layout_update(UILayout& layout);
+
+void ui_layout_render(UILayout& layout);
+
+/// UILayout functions
 /// ----------------------------------------------------------------------

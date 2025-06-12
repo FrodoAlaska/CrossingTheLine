@@ -24,9 +24,20 @@ struct nikola::App {
   int current_level = 0; 
   Level* level      = nullptr;
 
-  UIText menu_text;
+  UIText menu_title;
+  UILayout menu;
+  bool can_start = false;
 };
 /// App
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// OptionID
+enum OptionID {
+  OPTION_START = 0, 
+  OPTION_QUIT,
+};
+/// OptionID
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -51,6 +62,17 @@ static void init_levels(nikola::App* app) {
   // Current level init
   app->level = level_create(app->window);
   level_load(app->level, app->level_paths[0]);
+}
+
+static void on_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
+  nikola::App* app = (nikola::App*)user_data; 
+
+  if(layout.current_option == OPTION_START) {
+    app->can_start = true;
+  }
+  else if(layout.current_option == OPTION_QUIT) {
+    nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
+  }
 }
 
 /// Private functions
@@ -80,15 +102,31 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
   nikola::physics_world_set_iterations_count(5);
 
+  // UI layout init
+  ui_layout_create(&app->menu, 
+                   app->window, 
+                   nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"), 
+                   on_layout_click_func, 
+                   app);
+ 
   // UI text init
   UITextDesc text_desc = {
-    .string    = "Crossing The Line",
+    .string = "Crossing The Line",
+
     .font_id   = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"),
     .font_size = 50.0f,
-    .anchor    = UI_ANCHOR_TOP_CENTER,
-    .color     = nikola::Vec4(1.0f, 0.0f, 0.0f, 0.0f),
-  };
-  ui_text_create(&app->menu_text, window, text_desc);
+
+    .anchor = UI_ANCHOR_TOP_CENTER, 
+    .color  = nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f),
+  }; 
+  ui_text_create(&app->menu_title, app->window, text_desc);
+
+  // Setting up the menu layout
+
+  ui_layout_begin(app->menu, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 30.0f));
+  ui_layout_push_text(app->menu, "Start", 30.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  ui_layout_push_text(app->menu, "Quit", 30.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  ui_layout_end(app->menu);
 
   return app;
 }
@@ -100,8 +138,6 @@ void app_shutdown(nikola::App* app) {
   delete app;
 }
 
-static bool can_start = false;
-
 void app_update(nikola::App* app, const nikola::f64 delta_time) {
   // Quit the application when the specified exit key is pressed
   if(nikola::input_key_pressed(nikola::KEY_ESCAPE)) {
@@ -109,9 +145,12 @@ void app_update(nikola::App* app, const nikola::f64 delta_time) {
     return;
   }
 
+  if(!app->can_start) {
+    ui_layout_update(app->menu);
+  }
 
   // Update the current level
-  app->level->main_camera.is_active = can_start; 
+  app->level->main_camera.is_active = app->can_start; 
   level_update(app->level);
 
   // Level switching if the level is done
@@ -134,8 +173,14 @@ void app_render(nikola::App* app) {
   nikola::renderer_end();
   
   nikola::batch_renderer_begin();
+  
   level_render_hud(app->level);
-  ui_text_render_animation(app->menu_text, UI_TEXT_ANIMATION_FADE_IN, 30.0f);
+  
+  if(!app->can_start) {
+    ui_text_render(app->menu_title);
+    ui_layout_render(app->menu);
+  }
+
   nikola::batch_renderer_end();
 }
 

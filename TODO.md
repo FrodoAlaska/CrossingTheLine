@@ -1,11 +1,5 @@
 # Road to MVP (Minimal Viable Product) 
 
-- UI system
-
-- Cool menu screen
-
-- Menu system
-
 - A better and improved system to switch between levels. Nothing too fancy or final. Just the foundation.
 
 - Improved HUD.

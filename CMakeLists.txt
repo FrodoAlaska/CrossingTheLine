@@ -62,6 +62,7 @@ set(PROJECT_SOURCES
 
   # UI 
   ${PROJECT_SRC_DIR}/ui/ui_text.cpp
+  ${PROJECT_SRC_DIR}/ui/ui_layout.cpp
 )
 ############################################################
 
