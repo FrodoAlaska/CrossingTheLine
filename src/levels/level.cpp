@@ -67,7 +67,7 @@ static bool mouse_scroll_event(const nikola::Event& event, const void* dispatche
   // Apply the mouse scroll value only when the GUI is unfocused 
   // (to avoid both zooming and scrolling up and down the GUI window)
   if(!nikola::gui_is_focused()) {
-    cam->zoom += -event.mouse_scroll_value;
+    cam->position.y += -event.mouse_scroll_value;
   } 
 
   return true;
@@ -82,29 +82,25 @@ static void keyboard_camera_move_func(nikola::Camera& camera) {
   camera.yaw   = mouse_offset.x * camera.sensitivity;
   camera.pitch = mouse_offset.y * camera.sensitivity;
   camera.pitch = nikola::clamp_float(camera.pitch, -nikola::CAMERA_MAX_DEGREES, nikola::CAMERA_MAX_DEGREES);
-
-  // Move forward
-  if(nikola::input_key_down(nikola::KEY_W)) {
-    camera.position += nikola::Vec3(camera.front.x, 0.0f, camera.front.z) * speed;
-  }
-  // Move backwards
-  else if(nikola::input_key_down(nikola::KEY_S)) {
-    camera.position -= nikola::Vec3(camera.front.x, 0.0f, camera.front.z) * speed;
-  }
- 
-  // Move right
-  if(nikola::input_key_down(nikola::KEY_A)) {
-    camera.position -= nikola::vec3_normalize(nikola::vec3_cross(camera.front, camera.up)) * speed;
-  }
-  // Move left
-  else if(nikola::input_key_down(nikola::KEY_D)) {
-    camera.position += nikola::vec3_normalize(nikola::vec3_cross(camera.front, camera.up)) * speed;
-  }
 }
 
-static void stationary_camera_func(nikola::Camera& camera) {
+static void editor_camera_func(nikola::Camera& camera) {
   float speed = 50.0f * nikola::niclock_get_delta_time();
- 
+
+  if(nikola::input_button_down(nikola::MOUSE_BUTTON_MIDDLE)) {
+    nikola::Vec2 mouse_offset; 
+    nikola::input_mouse_offset(&mouse_offset.x, &mouse_offset.y);
+  
+    camera.yaw   = mouse_offset.x * camera.sensitivity;
+    camera.pitch = mouse_offset.y * camera.sensitivity;
+    camera.pitch = nikola::clamp_float(camera.pitch, -nikola::CAMERA_MAX_DEGREES, nikola::CAMERA_MAX_DEGREES);
+    
+    nikola::input_cursor_show(false);
+  } 
+  else if(nikola::input_button_released(nikola::MOUSE_BUTTON_MIDDLE)) {
+    nikola::input_cursor_show(true);
+  }
+
   // Clamp the zoom
   camera.zoom = nikola::clamp_float(camera.zoom, 1.0f, nikola::CAMERA_MAX_ZOOM);
 
@@ -174,11 +170,11 @@ Level* level_create(nikola::Window* window) {
 
   // GUI camera init
   nikola::camera_create(&lvl->gui_camera, cam_desc);
-  lvl->gui_camera.move_fn  = stationary_camera_func; 
+  lvl->gui_camera.move_fn  = editor_camera_func; 
   lvl->gui_camera.far      = 500.0f;
-  lvl->gui_camera.yaw      = -0.20f;
+  lvl->gui_camera.yaw      = 0.0f;
   lvl->gui_camera.pitch    = -48.5f;
-  lvl->gui_camera.position = nikola::Vec3(-77.3f, 80.0f, 8.3f);
+  lvl->gui_camera.position = nikola::Vec3(-77.8f, 80.0f, 80.0f);
  
   // Listen to events
   nikola::event_listen(nikola::EVENT_MOUSE_SCROLL_WHEEL, mouse_scroll_event, &lvl->gui_camera);
@@ -213,9 +209,6 @@ Level* level_create(nikola::Window* window) {
 bool level_load(Level* lvl, const nikola::FilePath& path) {
   nikola::PerfTimer timer; 
   NIKOLA_PERF_TIMER_BEGIN(timer);
-
-  // Variables init
-  lvl->is_paused = false; 
 
   // NKLevel init
   if(!nklvl_file_load(&lvl->nkbin, path)) {
@@ -261,8 +254,7 @@ void level_reset(Level* lvl) {
   lvl->is_paused = false; 
   lvl->can_lerp  = false;
 
-  // Reset the player/camera
-  lvl->main_camera.position  = lvl->nkbin.start_position;
+  // Reset the camera
   lvl->main_camera.yaw       = 0.00f;
   lvl->main_camera.pitch     = -5.3f;
   lvl->main_camera.is_active = true;

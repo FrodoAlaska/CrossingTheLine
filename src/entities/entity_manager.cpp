@@ -29,7 +29,6 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
 
   // Vehicle
   if(other->type == ENTITY_VEHICLE) {
-    player->is_active = false;
     other->is_active  = false; 
 
     game_event_dispatch(GAME_EVENT_LEVEL_LOST);
@@ -91,18 +90,7 @@ static void on_entity_collision(const nikola::CollisionPoint& point) {
 void entity_manager_create(Level* level_ref) {
   // Level init
   s_entt.level_ref = level_ref;
-
-  // Player init 
-  player_create(&s_entt.player, level_ref, level_ref->main_camera.position);
  
-  // Coin init
-  entity_create(&s_entt.coin, 
-                s_entt.level_ref, 
-                nikola::Vec3(10.0f, -2.0f, 10.0f),
-                nikola::Vec3(0.8f),
-                ENTITY_COIN, 
-                nikola::PHYSICS_BODY_KINEMATIC);
-
   // Physics world callback init
   nikola::physics_world_set_collision_callback(on_entity_collision, nullptr); 
 }
@@ -132,15 +120,18 @@ void entity_manager_load() {
   NKLevelFile* nklvl = &s_entt.level_ref->nkbin;
 
   // Player init
-  nikola::physics_body_set_position(s_entt.player.body, nklvl->start_position);
+  player_create(&s_entt.player, s_entt.level_ref, nklvl->start_position);
 
   // Coin init
   
-  nikola::physics_body_set_position(s_entt.coin.body, nklvl->coin_position); 
-  s_entt.coin.is_active = nklvl->has_coin;
-  
-  if(s_entt.coin.is_active) {
-    nikola::collider_set_extents(s_entt.coin.collider, nikola::Vec3(1.4f, 0.5f, 3.5f));
+  if(nklvl->has_coin) {
+    entity_create(&s_entt.coin, 
+                  s_entt.level_ref, 
+                  nklvl->coin_position,
+                  nikola::Vec3(1.4f, 0.5f, 4.0f),
+                  ENTITY_COIN, 
+                  nikola::PHYSICS_BODY_KINEMATIC);
+
     nikola::collider_set_local_position(s_entt.coin.collider, nikola::Vec3(0.0f, 0.0f, 1.6f));
     
     nikola::physics_body_set_rotation(s_entt.coin.body, nikola::Vec3(1.0f, 0.0f, 0.0f), 4.7f);
@@ -212,6 +203,7 @@ void entity_manager_save() {
 
 void entity_manager_reset() {
   // Reset the player
+  nikola::physics_body_set_position(s_entt.player.body, s_entt.level_ref->nkbin.start_position);
   s_entt.player.is_active = true;
 
   // Reset the vehicles
@@ -262,9 +254,7 @@ void entity_manager_render() {
   
   if(s_entt.level_ref->debug_mode) {
     // Player
-    transform = nikola::physics_body_get_transform(s_entt.player.body);
-    nikola::transform_scale(transform, nikola::Vec3(1.0f));
-    nikola::renderer_debug_cube(transform, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.2f));
+    nikola::renderer_debug_collider(s_entt.player.collider);
 
     // End points
     for(auto& point : s_entt.end_points) {
@@ -360,6 +350,12 @@ void entity_manager_render_gui() {
   // Vehicles
   if(ImGui::CollapsingHeader("Vehicles")) {
     ImGui::Text("Vehicles count: %zu", s_entt.vehicles.size());
+      
+    // Clear all
+    if(ImGui::Button("Clear all")) {
+      s_entt.vehicles.clear();
+    }
+
     for(nikola::sizei i = 0; i < s_entt.vehicles.size(); i++) {
       nikola::String name  = ("Vehicle " + std::to_string(i)); 
       Entity* vehicle_entt = &s_entt.vehicles[i].entity;
@@ -412,7 +408,7 @@ void entity_manager_render_gui() {
     ImGui::SeparatorText("Add options");
 
     // Position
-    static nikola::Vec3 position = nikola::Vec3(-11.0f, -1.5f, -32.0f);
+    static nikola::Vec3 position = nikola::Vec3(-16.0f, -1.5f, -32.0f);
     ImGui::DragFloat3("Position", &position[0], 0.1f);
     
     // Direction

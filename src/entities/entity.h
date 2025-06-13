@@ -117,7 +117,7 @@ void vehicle_create(Vehicle* v,
                     const VehicleType type, 
                     const nikola::Vec3& position, 
                     const nikola::Vec3& dir, 
-                    const float acceleration = 1000.0f);
+                    const float acceleration = 30.0f);
 
 void vehicle_set_active(Vehicle& v, const bool active);
 

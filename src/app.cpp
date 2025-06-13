@@ -40,8 +40,6 @@ enum MenuOptionID {
 /// WonOptionID
 enum WonOptionID {
   WON_OPTION_CONTINUE = 0, 
-  WON_OPTION_MENU,
-  WON_OPTION_QUIT,
 };
 /// WonOptionID
 /// ----------------------------------------------------------------------
@@ -49,8 +47,6 @@ enum WonOptionID {
 /// LostOptionID
 enum LostOptionID {
   LOST_OPTION_RETRY = 0, 
-  LOST_OPTION_MENU,
-  LOST_OPTION_QUIT,
 };
 /// LostOptionID
 /// ----------------------------------------------------------------------
@@ -103,15 +99,8 @@ static void on_won_layout_click_func(UILayout& layout, UIText& text, void* user_
     case WON_OPTION_CONTINUE:
       level_unload(app->level);
       level_load(app->level, app->level_paths[++app->current_level]);
-      app->current_state = GAME_STATE_LEVEL;
-      break;
-    case WON_OPTION_MENU:
       level_reset(app->level);
-      app->current_state                = GAME_STATE_MENU; 
-      app->level->main_camera.is_active = false;
-      break;
-    case WON_OPTION_QUIT:
-      nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
+      app->current_state = GAME_STATE_LEVEL;
       break;
   }
 }
@@ -123,14 +112,6 @@ static void on_lost_layout_click_func(UILayout& layout, UIText& text, void* user
     case LOST_OPTION_RETRY:
       level_reset(app->level);
       app->current_state = GAME_STATE_LEVEL;
-      break;
-    case LOST_OPTION_MENU:
-      level_reset(app->level);
-      app->current_state                = GAME_STATE_MENU; 
-      app->level->main_camera.is_active = false;
-      break;
-    case LOST_OPTION_QUIT:
-      nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
       break;
   }
 }
@@ -255,8 +236,8 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   init_levels(app);
 
   // @TODO: This might be useless, but it's just for testing purposes
-  nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
-  nikola::physics_world_set_iterations_count(5);
+  // nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
+  // nikola::physics_world_set_iterations_count(5);
 
   // Listen to events
   game_event_listen(GAME_EVENT_LEVEL_WON, on_state_change, app);
