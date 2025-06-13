@@ -215,8 +215,6 @@ static void init_game_states(nikola::App* app) {
  
   ui_layout_begin(*won_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
   ui_layout_push_text(*won_layout, "Continue", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
-  ui_layout_push_text(*won_layout, "To main menu", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
-  ui_layout_push_text(*won_layout, "Quit", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
   ui_layout_end(*won_layout);
   
   // Lost state
@@ -230,8 +228,6 @@ static void init_game_states(nikola::App* app) {
  
   ui_layout_begin(*lost_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
   ui_layout_push_text(*lost_layout, "Retry", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
-  ui_layout_push_text(*lost_layout, "To main menu", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
-  ui_layout_push_text(*lost_layout, "Quit", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
   ui_layout_end(*lost_layout);
 }
 

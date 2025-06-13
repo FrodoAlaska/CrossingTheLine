@@ -1,7 +1,5 @@
 # Road to MVP (Minimal Viable Product) 
 
-- Fix the text placing. Some texts with bigger font sizes have weird widths.
-
 - Make the last level of each chapter a "special" boy level, where the player will have to go up to a podium or a cone(?) or something else, interact with it, and get a few texts poping up, informing the player of the actual story. After which, the player can move on to the next chapter. 
 
 - Find a way to prevent the player from going outside of the level. Some road blocks on the edges? Invisible blocks? Anything to prevent the player from leaving the area and falling to their depths. 
@@ -10,6 +8,7 @@
 game mechanics.
 
 - Polish points: 
+    - Fix the text placing. Some texts with bigger font sizes have weird widths.
     - UI navigation 
     - Fog 
     - Smooth transition between states 
