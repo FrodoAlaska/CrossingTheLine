@@ -56,14 +56,6 @@ enum LostOptionID {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// Function declarations
-
-static void lerp_camera(nikola::Camera& camera, const nikola::Vec3& to, const float amount = nikola::niclock_get_delta_time());
-
-/// Function declarations
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// GameState
 struct GameState {
   UIText title;
@@ -241,10 +233,6 @@ static void init_game_states(nikola::App* app) {
   ui_layout_push_text(*lost_layout, "To main menu", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
   ui_layout_push_text(*lost_layout, "Quit", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
   ui_layout_end(*lost_layout);
-}
-
-static void lerp_camera(nikola::Camera& camera, const nikola::Vec3& to, const float amount) {
-  camera.position = nikola::vec3_lerp(camera.position, to, amount);
 }
 
 /// Private functions

@@ -115,6 +115,7 @@ struct Level {
 
   bool is_paused = false;
   bool has_coin  = true;
+  bool can_lerp  = false;
 
   // Debug stuff
   
