@@ -111,10 +111,6 @@ struct Level {
   nikola::ResourceGroupID resource_group;
   nikola::ResourceID resources[LEVEL_RESOURCES_MAX];
 
-  // UI 
-
-  UIText end_text;
-
   // State
 
   bool is_paused = false;

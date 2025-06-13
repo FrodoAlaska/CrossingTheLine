@@ -195,18 +195,6 @@ Level* level_create(nikola::Window* window) {
   lvl->frame.dir_light.color     = nikola::Vec3(0.7f);
   lvl->frame.ambient             = nikola::Vec3(0.5f);
 
-  // UI init
-  UITextDesc text_desc = {
-    .string = "NOT SET", 
-
-    .font_id   = lvl->resources[LEVEL_RESOURCE_FONT], 
-    .font_size = 50.0f,
-
-    .anchor = UI_ANCHOR_CENTER, 
-    .color  = nikola::Vec4(1.0f),
-  };
-  ui_text_create(&lvl->end_text, lvl->window_ref, text_desc);
-
   // Listen to events
 
   game_event_listen(GAME_EVENT_LEVEL_WON, level_event_callback, lvl);

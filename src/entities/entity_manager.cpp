@@ -27,13 +27,8 @@ static EntityManager s_entt;
 static void resolve_player_collisions(Entity* player, Entity* other) {
   Level* lvl = player->level_ref;
 
-  // End point
-  if(other->type == ENTITY_END_POINT) {
-    player->is_active = false;
-    game_event_dispatch(GAME_EVENT_LEVEL_WON);
-  }
   // Vehicle
-  else if(other->type == ENTITY_VEHICLE) {
+  if(other->type == ENTITY_VEHICLE) {
     player->is_active = false;
     other->is_active  = false; 
 
@@ -227,6 +222,11 @@ void entity_manager_reset() {
 }
 
 void entity_manager_update() {
+  // AABB collision test
+  if(entity_aabb_test(s_entt.player, s_entt.end_points[0])) {
+    game_event_dispatch(GAME_EVENT_LEVEL_WON);
+  }
+
   // Player update
   player_update(s_entt.player);
 }

@@ -13,7 +13,7 @@ void player_create(Entity* player, Level* lvl, const nikola::Vec3& start_pos) {
                 start_pos, 
                 nikola::Vec3(1.0f), 
                 ENTITY_PLAYER, 
-                nikola::PHYSICS_BODY_DYNAMIC);
+                nikola::PHYSICS_BODY_KINEMATIC);
 }
 
 void player_update(Entity& player) {

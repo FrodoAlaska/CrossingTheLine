@@ -298,15 +298,6 @@ void app_update(nikola::App* app, const nikola::f64 delta_time) {
     return;
   }
 
-  switch(app->current_state) {
-    case GAME_STATE_LOST:
-    case GAME_STATE_WON:
-      lerp_camera(app->level->main_camera, nikola::Vec3(10.0f, 60.0f, 10.0f));
-      break;
-    default:
-      break;
-  }
-
   // Update the current state
   ui_layout_update(app->game_states[app->current_state].layout);
 

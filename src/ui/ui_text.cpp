@@ -73,8 +73,12 @@ const nikola::Vec2 ui_text_measure_size(const UIText& text) {
     if(glyph->unicode == ' ' || glyph->unicode == '\t') {
       result.x += prev_advance;
     }
+     
+    if(glyph->advance_x > 0) {
+      result.x += glyph->advance_x;
+    }
     else {
-      result.x += glyph->offset.x + glyph->advance_x;
+      result.x += glyph->offset.x + glyph->right;
     }
 
     // Will be used for the next glyph

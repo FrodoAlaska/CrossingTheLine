@@ -9,6 +9,13 @@
 - Try to polish the first 5 levels until we are sure everything is good. Because if we move to the next few levels, we at least have a standard and a process. It's essentially going to all be about the level design and not much about the implementation of certain 
 game mechanics.
 
+- Polish points: 
+    - UI navigation 
+    - Fog 
+    - Smooth transition between states 
+    - UI sounds 
+    - Slightly better movements
+
 - Get some art:
     - Truck 
     - etc...
