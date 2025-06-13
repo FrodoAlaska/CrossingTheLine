@@ -51,12 +51,14 @@ void ui_text_create(UIText* text, const nikola::Window* window_ref, const UIText
   ui_text_set_anchor(*text, text->anchor);
 
   nikola::timer_create(&text->animation_timer, 1.0f, false);
+
+  text->is_active = true;
 }
 
 const nikola::Vec2 ui_text_measure_size(const UIText& text) {
   nikola::Vec2 result(0.0f);
 
-  float font_scale   = text.font_size / 256.0f; // @TODO: This is an engine problem, but that `256` should probably be a constant. This is _REALLY_ bad.
+  float font_scale   = text.font_size / 256.0f; // @TODO: This is an engine problem, but the `256` should be a constant. This is _REALLY_ bad.
   float prev_advance = 0.0f;
 
   for(nikola::sizei i = 0; i < text.string.size(); i++) {
@@ -117,7 +119,6 @@ void ui_text_set_anchor(UIText& text, const UIAnchor anchor) {
       text.position.x = (window_size.x - text_size.x - padding.x) + text.offset.x; 
       text.position.y = (window_center.y - text_size.y / 2.0f) + text.offset.y; 
       break;
-    
     case UI_ANCHOR_BOTTOM_LEFT:  
       text.position.x = padding.x + text.offset.x;
       text.position.y = (window_size.y - text_size.y - padding.y) + text.offset.y; 
@@ -138,10 +139,18 @@ void ui_text_set_string(UIText& text, const nikola::String& string) {
 }
 
 void ui_text_render(const UIText& text) {
+  if(!text.is_active) {
+    return;
+  }
+
   batch_render_text(text.font, text.string, text.position, text.font_size, text.color);
 }
 
 void ui_text_render_animation(UIText& text, const UITextAnimation type, const float duration) {
+  if(!text.is_active) {
+    return;
+  }
+
   text.animation_timer.is_active = true;
   text.animation_timer.limit     = duration;
   nikola::timer_update(text.animation_timer);

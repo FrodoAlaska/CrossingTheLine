@@ -1,5 +1,6 @@
 #include "entity.h"
 #include "levels/level.h"
+#include "game_event.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -28,23 +29,22 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
 
   // End point
   if(other->type == ENTITY_END_POINT) {
-    lvl->has_won = true;
+    player->is_active = false;
+    game_event_dispatch(GAME_EVENT_LEVEL_WON);
   }
   // Vehicle
   else if(other->type == ENTITY_VEHICLE) {
-    lvl->has_lost = true;
+    player->is_active = false;
+    other->is_active  = false; 
 
-    player->is_active          = false;
-    lvl->main_camera.is_active = false;
-
-    other->is_active = false; 
+    game_event_dispatch(GAME_EVENT_LEVEL_LOST);
     nikola::physics_body_set_awake(other->body, false);
   }
   // Coin 
   else if(other->type == ENTITY_COIN && other->is_active) {
     // Eat the coin
     other->is_active = false; 
-    lvl->has_coin    = false;
+    game_event_dispatch(GAME_EVENT_COIN_COLLECTED);
   }
 }
 

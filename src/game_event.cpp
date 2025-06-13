@@ -1,0 +1,48 @@
+#include "game_event.h"
+
+#include <nikola/nikola_containers.h>
+
+/// ----------------------------------------------------------------------
+/// GameEventEntry 
+struct GameEventEntry {
+  OnGameEventFireFunc func; 
+  void* listener;
+};
+/// GameEventEntry 
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// GameEventPool
+struct GameEventPool {
+  nikola::DynamicArray<GameEventEntry> events[GAME_EVENTS_MAX];
+};
+
+static GameEventPool s_pool;
+/// GameEventPool
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// GameEvent functions
+
+void game_event_listen(const GameEventType type, const OnGameEventFireFunc& func, const void* listener) {
+  s_pool.events[type].push_back(GameEventEntry{});
+  GameEventEntry* entry = &s_pool.events[type][s_pool.events[type].size() - 1];
+
+  NIKOLA_ASSERT(func, "Cannot listen to an event with an invalid callback");
+  entry->func     = func; 
+  entry->listener = (void*)listener;
+}
+
+const bool game_event_dispatch(const GameEventType type, const void* dispatcher) {
+  for(nikola::sizei i = 0; i < s_pool.events[type].size(); i++) {
+    GameEventEntry* entry = &s_pool.events[type][i];
+    if(!entry->func(type, (void*)dispatcher, entry->listener)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/// GameEvent functions
+/// ----------------------------------------------------------------------

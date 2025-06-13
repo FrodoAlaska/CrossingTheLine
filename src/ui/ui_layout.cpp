@@ -20,6 +20,8 @@ void ui_layout_create(UILayout* layout,
 
   layout->click_func = click_func;
   layout->user_data  = (void*)user_data; 
+  
+  layout->is_active = true;
 }
 
 void ui_layout_begin(UILayout& layout, const UIAnchor anchor, const nikola::Vec2& offset) {
@@ -56,6 +58,10 @@ void ui_layout_push_text(UILayout& layout, const nikola::String& str, const floa
 }
 
 void ui_layout_update(UILayout& layout) {
+  if(!layout.is_active) {
+    return;
+  }
+
   if(nikola::input_key_pressed(nikola::KEY_UP)) {
     layout.current_option--;
   }
@@ -78,6 +84,10 @@ void ui_layout_update(UILayout& layout) {
 }
 
 void ui_layout_render(UILayout& layout) {
+  if(!layout.is_active) {
+    return;
+  }
+
   // Render the texts
   for(auto& text : layout.texts) {
     ui_text_render(text);

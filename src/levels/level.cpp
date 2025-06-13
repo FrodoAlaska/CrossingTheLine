@@ -1,4 +1,5 @@
 #include "level.h"
+#include "game_event.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -43,20 +44,6 @@ static void init_resources(Level* lvl) {
   lvl->resources[LEVEL_RESOURCE_CAR]   = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
   lvl->resources[LEVEL_RESOURCE_TRUCK] = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
   lvl->resources[LEVEL_RESOURCE_COIN]  = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
-}
-
-static void reset_level(Level* lvl) {
-  // Reset variables
-  lvl->is_paused = false; 
-  lvl->has_won   = false; 
-  lvl->has_lost  = false; 
-
-  // Reset the player/camera
-  lvl->main_camera.position  = lvl->nkbin.start_position;
-  lvl->main_camera.is_active = true;
-
-  // Reset the entities
-  entity_manager_reset();
 }
 
 /// Private functions
@@ -136,6 +123,24 @@ static void stationary_camera_func(nikola::Camera& camera) {
   }
 }
 
+static bool level_event_callback(const GameEventType type, void* dispatcher, void* listener) {
+  Level* lvl = (Level*)listener;
+
+  switch(type) {
+    case GAME_EVENT_LEVEL_WON:
+      lvl->main_camera.is_active = false;
+      return true;
+    case GAME_EVENT_LEVEL_LOST:
+      lvl->main_camera.is_active = false;
+      return true;
+    case GAME_EVENT_COIN_COLLECTED:
+      lvl->has_coin = false;
+      return true;
+    default:
+      return false;
+  }
+}
+
 /// Callbacks
 /// ----------------------------------------------------------------------
 
@@ -157,8 +162,9 @@ Level* level_create(nikola::Window* window) {
     .move_func    = keyboard_camera_move_func,
   };
   nikola::camera_create(&lvl->main_camera, cam_desc);
-  lvl->main_camera.yaw   = 0.00f;
-  lvl->main_camera.pitch = -5.3f;
+  lvl->main_camera.yaw       = 0.00f;
+  lvl->main_camera.pitch     = -5.3f;
+  lvl->main_camera.is_active = false;
 
   // GUI camera init
   nikola::camera_create(&lvl->gui_camera, cam_desc);
@@ -189,6 +195,24 @@ Level* level_create(nikola::Window* window) {
   lvl->frame.dir_light.color     = nikola::Vec3(0.7f);
   lvl->frame.ambient             = nikola::Vec3(0.5f);
 
+  // UI init
+  UITextDesc text_desc = {
+    .string = "NOT SET", 
+
+    .font_id   = lvl->resources[LEVEL_RESOURCE_FONT], 
+    .font_size = 50.0f,
+
+    .anchor = UI_ANCHOR_CENTER, 
+    .color  = nikola::Vec4(1.0f),
+  };
+  ui_text_create(&lvl->end_text, lvl->window_ref, text_desc);
+
+  // Listen to events
+
+  game_event_listen(GAME_EVENT_LEVEL_WON, level_event_callback, lvl);
+  game_event_listen(GAME_EVENT_LEVEL_LOST, level_event_callback, lvl);
+  game_event_listen(GAME_EVENT_COIN_COLLECTED, level_event_callback, lvl);
+
   return lvl;
 }
 
@@ -198,8 +222,6 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
 
   // Variables init
   lvl->is_paused = false; 
-  lvl->has_won   = false; 
-  lvl->has_lost  = false; 
 
   // NKLevel init
   if(!nklvl_file_load(&lvl->nkbin, path)) {
@@ -240,6 +262,20 @@ void level_unload(Level* lvl) {
   tile_manager_destroy();
 }
 
+void level_reset(Level* lvl) {
+  // Reset variables
+  lvl->is_paused = false; 
+
+  // Reset the player/camera
+  lvl->main_camera.position  = lvl->nkbin.start_position;
+  lvl->main_camera.yaw       = 0.00f;
+  lvl->main_camera.pitch     = -5.3f;
+  lvl->main_camera.is_active = true;
+
+  // Reset the entities
+  entity_manager_reset();
+}
+
 void level_update(Level* lvl) {
   // Take input
   
@@ -258,14 +294,7 @@ void level_update(Level* lvl) {
     lvl->is_paused = !lvl->is_paused;
   }
  
-  // Reset the level
-  if(lvl->has_lost && nikola::input_key_pressed(nikola::KEY_R)) {
-    reset_level(lvl);
-  }
-
-  // It's pretty obvious what this is, but I'm 
-  // writing a comment here for better visualization.
-  if(lvl->is_paused && lvl->has_lost) {
+  if(lvl->is_paused) {
     return;
   }
 
@@ -296,25 +325,7 @@ void level_render(Level* lvl) {
 }
 
 void level_render_hud(Level* lvl) {
-  nikola::Font* font = nikola::resources_get_font(lvl->resources[LEVEL_RESOURCE_FONT]);
-
-  int width, height;
-  nikola::window_get_size(lvl->window_ref, &width, &height);
-
-  if(lvl->has_lost) {
-    nikola::Vec2 half_size   = nikola::Vec2(width, height) / 2.0f;
-    nikola::Vec4 loser_coler = nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f);
-
-    nikola::batch_render_text(font, "You Died!", half_size, 64.0f, loser_coler);
-    nikola::batch_render_text(font, "[R] Replay", half_size + nikola::Vec2(0.0f, 86.0f), 64.0f, loser_coler);
-  }
-  else if(lvl->has_won) {
-    nikola::Vec2 half_size    = nikola::Vec2(width, height) / 2.0f;
-    nikola::Vec4 winner_coler = nikola::Vec4(0.0f, 1.0f, 0.0f, 1.0f);
-
-    nikola::batch_render_text(font, "Congratulations!!!", half_size, 64.0f, winner_coler);
-    nikola::batch_render_text(font, "[ENTER] Continue", half_size + nikola::Vec2(0.0f, 86.0f), 64.0f, winner_coler);
-  }
+  // @TODO
 }
 
 void level_render_gui(Level* lvl) { 
@@ -386,7 +397,7 @@ void level_render_gui(Level* lvl) {
     // Reset the level
     ImGui::SameLine();
     if(ImGui::Button("Reset level")) {
-      reset_level(lvl);
+      level_reset(lvl);
     }
   }
 

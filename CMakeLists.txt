@@ -47,6 +47,7 @@ set(PROJECT_SOURCES
   # Core
   ${PROJECT_SRC_DIR}/app.cpp
   ${PROJECT_SRC_DIR}/main.cpp
+  ${PROJECT_SRC_DIR}/game_event.cpp
 
   # Entities
   ${PROJECT_SRC_DIR}/entities/entity.cpp

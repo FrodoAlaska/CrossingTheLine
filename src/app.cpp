@@ -1,18 +1,75 @@
 #include "app.h"
+#include "levels/level.h"
+#include "ui/ui.h"
+#include "game_event.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_stdlib.h>
-
-#include "levels/level.h"
-#include "ui/ui.h"
-
 /// ----------------------------------------------------------------------
 /// Consts
 
 const nikola::sizei LEVELS_MAX = 5;
 
 /// Consts
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// GameStateType
+enum GameStateType {
+  GAME_STATE_MENU, 
+  GAME_STATE_LEVEL, 
+  GAME_STATE_WON,
+  GAME_STATE_LOST,
+  
+  GAME_STATES_MAX = GAME_STATE_LOST + 1,
+};
+/// GameStateType
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// MenuOptionID
+enum MenuOptionID {
+  MENU_OPTION_START = 0, 
+  MENU_OPTION_QUIT,
+};
+/// MenuOptionID
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// WonOptionID
+enum WonOptionID {
+  WON_OPTION_CONTINUE = 0, 
+  WON_OPTION_MENU,
+  WON_OPTION_QUIT,
+};
+/// WonOptionID
+/// ----------------------------------------------------------------------
+
+/// LostOptionID
+enum LostOptionID {
+  LOST_OPTION_RETRY = 0, 
+  LOST_OPTION_MENU,
+  LOST_OPTION_QUIT,
+};
+/// LostOptionID
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Function declarations
+
+static void lerp_camera(nikola::Camera& camera, const nikola::Vec3& to, const float amount = nikola::niclock_get_delta_time());
+
+/// Function declarations
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// GameState
+struct GameState {
+  UIText title;
+  UILayout layout;
+};
+/// GameState
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -24,20 +81,84 @@ struct nikola::App {
   int current_level = 0; 
   Level* level      = nullptr;
 
-  UIText menu_title;
-  UILayout menu;
-  bool can_start = false;
+  GameStateType current_state = GAME_STATE_MENU;
+  GameState game_states[GAME_STATES_MAX];
 };
 /// App
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// OptionID
-enum OptionID {
-  OPTION_START = 0, 
-  OPTION_QUIT,
-};
-/// OptionID
+/// Callbacks
+
+static void on_menu_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
+  nikola::App* app = (nikola::App*)user_data; 
+
+  switch(layout.current_option) {
+    case MENU_OPTION_START:
+      level_reset(app->level);
+      app->current_state = GAME_STATE_LEVEL;
+      break;
+    case MENU_OPTION_QUIT:
+      nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
+      break;
+  }
+}
+
+static void on_won_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
+  nikola::App* app = (nikola::App*)user_data; 
+
+  switch(layout.current_option) {
+    case WON_OPTION_CONTINUE:
+      level_unload(app->level);
+      level_load(app->level, app->level_paths[++app->current_level]);
+      app->current_state = GAME_STATE_LEVEL;
+      break;
+    case WON_OPTION_MENU:
+      level_reset(app->level);
+      app->current_state                = GAME_STATE_MENU; 
+      app->level->main_camera.is_active = false;
+      break;
+    case WON_OPTION_QUIT:
+      nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
+      break;
+  }
+}
+
+static void on_lost_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
+  nikola::App* app = (nikola::App*)user_data; 
+
+  switch(layout.current_option) {
+    case LOST_OPTION_RETRY:
+      level_reset(app->level);
+      app->current_state = GAME_STATE_LEVEL;
+      break;
+    case LOST_OPTION_MENU:
+      level_reset(app->level);
+      app->current_state                = GAME_STATE_MENU; 
+      app->level->main_camera.is_active = false;
+      break;
+    case LOST_OPTION_QUIT:
+      nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
+      break;
+  }
+}
+
+static bool on_state_change(const GameEventType type, void* dispatcher, void* listener) {
+  nikola::App* app = (nikola::App*)listener;
+
+  switch(type) {
+    case GAME_EVENT_LEVEL_WON:
+      app->current_state = GAME_STATE_WON;
+      return true;
+    case GAME_EVENT_LEVEL_LOST:
+      app->current_state = GAME_STATE_LOST;
+      return true;
+    default:
+      return false;
+  }
+}
+
+/// Callbacks
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -60,19 +181,70 @@ static void init_levels(nikola::App* app) {
   app->level_paths[4] = nikola::filepath_append(current_path, "levels/level_5.nklvl");;
 
   // Current level init
+  
   app->level = level_create(app->window);
   level_load(app->level, app->level_paths[0]);
 }
 
-static void on_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
-  nikola::App* app = (nikola::App*)user_data; 
+static void init_game_states(nikola::App* app) {
+  // Menu state
 
-  if(layout.current_option == OPTION_START) {
-    app->can_start = true;
-  }
-  else if(layout.current_option == OPTION_QUIT) {
-    nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
-  }
+  UILayout* menu_layout = &app->game_states[GAME_STATE_MENU].layout;
+  ui_layout_create(menu_layout, 
+                   app->window, 
+                   nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"), 
+                   on_menu_layout_click_func, 
+                   app);
+ 
+  UITextDesc text_desc = {
+    .string = "Crossing The Line",
+
+    .font_id   = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"),
+    .font_size = 50.0f,
+
+    .anchor = UI_ANCHOR_TOP_CENTER, 
+    .color  = nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f),
+  }; 
+  ui_text_create(&app->game_states[GAME_STATE_MENU].title, app->window, text_desc);
+
+  ui_layout_begin(*menu_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 30.0f));
+  ui_layout_push_text(*menu_layout, "Start", 30.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  ui_layout_push_text(*menu_layout, "Quit", 30.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  ui_layout_end(*menu_layout);
+ 
+  // Won state
+  
+  UILayout* won_layout = &app->game_states[GAME_STATE_WON].layout;
+  ui_layout_create(won_layout, 
+                   app->window, 
+                   nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"), 
+                   on_won_layout_click_func, 
+                   app);
+ 
+  ui_layout_begin(*won_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
+  ui_layout_push_text(*won_layout, "Continue", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+  ui_layout_push_text(*won_layout, "To main menu", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+  ui_layout_push_text(*won_layout, "Quit", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+  ui_layout_end(*won_layout);
+  
+  // Lost state
+  
+  UILayout* lost_layout = &app->game_states[GAME_STATE_LOST].layout;
+  ui_layout_create(lost_layout, 
+                   app->window, 
+                   nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"), 
+                   on_lost_layout_click_func, 
+                   app);
+ 
+  ui_layout_begin(*lost_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
+  ui_layout_push_text(*lost_layout, "Retry", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  ui_layout_push_text(*lost_layout, "To main menu", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  ui_layout_push_text(*lost_layout, "Quit", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  ui_layout_end(*lost_layout);
+}
+
+static void lerp_camera(nikola::Camera& camera, const nikola::Vec3& to, const float amount) {
+  camera.position = nikola::vec3_lerp(camera.position, to, amount);
 }
 
 /// Private functions
@@ -102,31 +274,12 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
   nikola::physics_world_set_iterations_count(5);
 
-  // UI layout init
-  ui_layout_create(&app->menu, 
-                   app->window, 
-                   nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"), 
-                   on_layout_click_func, 
-                   app);
- 
-  // UI text init
-  UITextDesc text_desc = {
-    .string = "Crossing The Line",
+  // Listen to events
+  game_event_listen(GAME_EVENT_LEVEL_WON, on_state_change, app);
+  game_event_listen(GAME_EVENT_LEVEL_LOST, on_state_change, app);
 
-    .font_id   = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"),
-    .font_size = 50.0f,
-
-    .anchor = UI_ANCHOR_TOP_CENTER, 
-    .color  = nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f),
-  }; 
-  ui_text_create(&app->menu_title, app->window, text_desc);
-
-  // Setting up the menu layout
-
-  ui_layout_begin(app->menu, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 30.0f));
-  ui_layout_push_text(app->menu, "Start", 30.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
-  ui_layout_push_text(app->menu, "Quit", 30.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
-  ui_layout_end(app->menu);
+  // Game sates init
+  init_game_states(app);
 
   return app;
 }
@@ -145,26 +298,20 @@ void app_update(nikola::App* app, const nikola::f64 delta_time) {
     return;
   }
 
-  if(!app->can_start) {
-    ui_layout_update(app->menu);
+  switch(app->current_state) {
+    case GAME_STATE_LOST:
+    case GAME_STATE_WON:
+      lerp_camera(app->level->main_camera, nikola::Vec3(10.0f, 60.0f, 10.0f));
+      break;
+    default:
+      break;
   }
+
+  // Update the current state
+  ui_layout_update(app->game_states[app->current_state].layout);
 
   // Update the current level
-  app->level->main_camera.is_active = app->can_start; 
   level_update(app->level);
-
-  // Level switching if the level is done
-
-  if(!app->level->has_won) {
-    return;
-  }
-
-  if(nikola::input_key_pressed(nikola::KEY_ENTER) && app->current_level < (LEVELS_MAX - 1)) {
-    app->current_level++;
-
-    level_unload(app->level);
-    level_load(app->level, app->level_paths[app->current_level]);
-  }
 }
 
 void app_render(nikola::App* app) {
@@ -174,12 +321,10 @@ void app_render(nikola::App* app) {
   
   nikola::batch_renderer_begin();
   
-  level_render_hud(app->level);
+  // Render the current state's layout
   
-  if(!app->can_start) {
-    ui_text_render(app->menu_title);
-    ui_layout_render(app->menu);
-  }
+  ui_text_render(app->game_states[app->current_state].title);
+  ui_layout_render(app->game_states[app->current_state].layout);
 
   nikola::batch_renderer_end();
 }

@@ -111,10 +111,12 @@ struct Level {
   nikola::ResourceGroupID resource_group;
   nikola::ResourceID resources[LEVEL_RESOURCES_MAX];
 
+  // UI 
+
+  UIText end_text;
+
   // State
 
-  bool has_lost  = false;
-  bool has_won   = false;
   bool is_paused = false;
   bool has_coin  = true;
 
@@ -146,6 +148,8 @@ bool level_load(Level* lvl, const nikola::FilePath& path);
 void level_destroy(Level* lvl);
 
 void level_unload(Level* lvl);
+
+void level_reset(Level* lvl);
 
 void level_update(Level* lvl);
 

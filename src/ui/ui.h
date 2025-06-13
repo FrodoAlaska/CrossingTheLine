@@ -57,6 +57,8 @@ struct UIText {
   nikola::Vec4 color;
 
   nikola::Timer animation_timer;
+
+  bool is_active = false;
 };
 /// UIText
 /// ----------------------------------------------------------------------
@@ -92,6 +94,8 @@ struct UILayout {
 
   OnUILayoutClickFunc click_func = nullptr;
   void* user_data                = nullptr;
+
+  bool is_active = false;
 };
 /// UILayout
 /// ----------------------------------------------------------------------
