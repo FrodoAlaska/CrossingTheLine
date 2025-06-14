@@ -4,14 +4,6 @@
 #include <nikola/nikola.h>
 
 /// ----------------------------------------------------------------------
-/// Globals (@TEMP)
-
-static float random_speeds[] = {1000.0f, 1200.0f, 1400.0f, 1600.0f};
-
-/// Globals (@TEMP)
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// Vehicle functions
 
 void vehicle_create(Vehicle* v, 
@@ -24,7 +16,7 @@ void vehicle_create(Vehicle* v,
   nikola::Vec3 collider_scale, collider_offset; 
   switch(type) {
     case VEHICLE_CAR:
-      collider_scale  = nikola::Vec3(6.0f, 4.9f, 9.7f);
+      collider_scale  = nikola::Vec3(5.0f, 4.9f, 9.6f);
       collider_offset = nikola::Vec3(0.0f, 2.5f, 0.0f);
       break;
     case VEHICLE_TRUCK:
@@ -42,21 +34,21 @@ void vehicle_create(Vehicle* v,
                 ENTITY_VEHICLE, 
                 nikola::PHYSICS_BODY_DYNAMIC);
 
-  // Based on the direction, the vehicle should be
-  // facing towards the correct direction. 
-  if(dir.z == -1) {
-    nikola::physics_body_set_rotation(v->entity.body, nikola::Vec3(0.0f, 1.0f, 0.0f), 180.0f * nikola::DEG2RAD);
-  } 
-
-  // Collider position init
-  nikola::collider_set_local_position(v->entity.collider, collider_offset);
-
   // Vehicle variables init 
   v->type         = type; 
   v->acceleration = acceleration;
   v->direction    = dir;
+  v->rotation     = nikola::Vec4(0.0f);
 
-  nikola::physics_body_set_linear_velocity(v->entity.body, nikola::Vec3(acceleration) * v->direction);
+  // Based on the direction, the vehicle should be
+  // facing towards the correct direction. 
+  if(dir.z <= -1) {
+    v->rotation = nikola::Vec4(0.0f, 1.0f, 0.0f, 180.0f * nikola::DEG2RAD);
+    nikola::physics_body_set_rotation(v->entity.body, nikola::Vec3(v->rotation), v->rotation.w);
+  } 
+
+  // Collider position init
+  nikola::collider_set_local_position(v->entity.collider, collider_offset);
 }
 
 void vehicle_set_active(Vehicle& v, const bool active) {
@@ -64,10 +56,8 @@ void vehicle_set_active(Vehicle& v, const bool active) {
   nikola::physics_body_set_awake(v.entity.body, active);
 
   if(active) {
-    nikola::physics_body_set_rotation(v.entity.body, nikola::Vec3(1.0f), 0.0f);
-    nikola::physics_body_apply_force(v.entity.body, nikola::Vec3(0.0f));
+    nikola::physics_body_set_rotation(v.entity.body, nikola::Vec3(v.rotation), v.rotation.w);
     nikola::physics_body_set_angular_velocity(v.entity.body, nikola::Vec3(0.0f));
-    
     nikola::physics_body_set_linear_velocity(v.entity.body, nikola::Vec3(v.acceleration) * v.direction);
   }
 }

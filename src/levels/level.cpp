@@ -73,21 +73,10 @@ static bool mouse_scroll_event(const nikola::Event& event, const void* dispatche
   return true;
 }
 
-static void keyboard_camera_move_func(nikola::Camera& camera) {
-  float speed = 20.0f * nikola::niclock_get_delta_time();
-
-  nikola::Vec2 mouse_offset; 
-  nikola::input_mouse_offset(&mouse_offset.x, &mouse_offset.y);
-
-  camera.yaw   = mouse_offset.x * camera.sensitivity;
-  camera.pitch = mouse_offset.y * camera.sensitivity;
-  camera.pitch = nikola::clamp_float(camera.pitch, -nikola::CAMERA_MAX_DEGREES, nikola::CAMERA_MAX_DEGREES);
-}
-
 static void editor_camera_func(nikola::Camera& camera) {
   float speed = 50.0f * nikola::niclock_get_delta_time();
 
-  if(nikola::input_button_down(nikola::MOUSE_BUTTON_MIDDLE)) {
+  if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT)) {
     nikola::Vec2 mouse_offset; 
     nikola::input_mouse_offset(&mouse_offset.x, &mouse_offset.y);
   
@@ -97,12 +86,9 @@ static void editor_camera_func(nikola::Camera& camera) {
     
     nikola::input_cursor_show(false);
   } 
-  else if(nikola::input_button_released(nikola::MOUSE_BUTTON_MIDDLE)) {
+  else if(nikola::input_key_released(nikola::KEY_LEFT_SHIFT)) {
     nikola::input_cursor_show(true);
   }
-
-  // Clamp the zoom
-  camera.zoom = nikola::clamp_float(camera.zoom, 1.0f, nikola::CAMERA_MAX_ZOOM);
 
   // Move forward
   if(nikola::input_key_down(nikola::KEY_W)) {
@@ -157,15 +143,16 @@ Level* level_create(nikola::Window* window) {
 
   // Main camera init
   nikola::CameraDesc cam_desc = {
-    .position     = nikola::Vec3(-22.0f, 0.0f, 9.0f),
-    .target       = nikola::Vec3(0.0f, 0.0f, -3.0f),
+    .position     = nikola::Vec3(-61.0f, 55.0f, 10.0f),
+    .target       = nikola::Vec3(0.0f, 55.0f, -3.0f),
     .up_axis      = nikola::Vec3(0.0f, 1.0f, 0.0f),
     .aspect_ratio = nikola::window_get_aspect_ratio(lvl->window_ref),
-    .move_func    = keyboard_camera_move_func,
+    .move_func    = nullptr,
   };
   nikola::camera_create(&lvl->main_camera, cam_desc);
-  lvl->main_camera.yaw       = 0.00f;
-  lvl->main_camera.pitch     = -5.3f;
+  lvl->main_camera.yaw       = 0.2f;
+  lvl->main_camera.pitch     = -43.6f;
+  lvl->main_camera.far       = 150.0f;
   lvl->main_camera.is_active = false;
 
   // GUI camera init
@@ -174,7 +161,6 @@ Level* level_create(nikola::Window* window) {
   lvl->gui_camera.far      = 500.0f;
   lvl->gui_camera.yaw      = 0.0f;
   lvl->gui_camera.pitch    = -48.5f;
-  lvl->gui_camera.position = nikola::Vec3(-77.8f, 80.0f, 80.0f);
  
   // Listen to events
   nikola::event_listen(nikola::EVENT_MOUSE_SCROLL_WHEEL, mouse_scroll_event, &lvl->gui_camera);
@@ -215,9 +201,6 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
     return false;
   }
 
-  // Main camera init
-  lvl->main_camera.position = lvl->nkbin.start_position;
-
   // Load entities
   entity_manager_load();
 
@@ -255,8 +238,6 @@ void level_reset(Level* lvl) {
   lvl->can_lerp  = false;
 
   // Reset the camera
-  lvl->main_camera.yaw       = 0.00f;
-  lvl->main_camera.pitch     = -5.3f;
   lvl->main_camera.is_active = true;
 
   // Reset the entities
@@ -286,10 +267,6 @@ void level_update(Level* lvl) {
   }
 
   // Update state
-
-  if(lvl->can_lerp) {
-    lerp_camera(lvl->main_camera, nikola::Vec3(10.0f, 60.0f, 10.0f));
-  }
 
   // Update tiles
   if(lvl->has_editor) {
@@ -330,6 +307,7 @@ void level_render_gui(Level* lvl) {
   // Camera  
   if(ImGui::CollapsingHeader("Camera")) {
     nikola::gui_edit_camera("Main camera", &lvl->main_camera);
+    nikola::gui_edit_camera("GUI camera", &lvl->gui_camera);
   }
 
   // Entities 

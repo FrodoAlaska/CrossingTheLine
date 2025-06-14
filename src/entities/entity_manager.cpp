@@ -12,7 +12,6 @@ struct EntityManager {
   Level* level_ref;
 
   Entity player, coin; 
-  
   nikola::DynamicArray<Entity> end_points;
   nikola::DynamicArray<Vehicle> vehicles;
 };
@@ -33,11 +32,14 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
 
     game_event_dispatch(GAME_EVENT_LEVEL_LOST);
     nikola::physics_body_set_awake(other->body, false);
+    nikola::physics_body_set_awake(player->body, false);
   }
   // Coin 
   else if(other->type == ENTITY_COIN && other->is_active) {
     // Eat the coin
     other->is_active = false; 
+    nikola::physics_body_set_awake(other->body, false);
+    
     game_event_dispatch(GAME_EVENT_COIN_COLLECTED);
   }
 }
@@ -130,7 +132,7 @@ void entity_manager_load() {
                   nklvl->coin_position,
                   nikola::Vec3(1.4f, 0.5f, 4.0f),
                   ENTITY_COIN, 
-                  nikola::PHYSICS_BODY_KINEMATIC);
+                  nikola::PHYSICS_BODY_DYNAMIC);
 
     nikola::collider_set_local_position(s_entt.coin.collider, nikola::Vec3(0.0f, 0.0f, 1.6f));
     
@@ -148,7 +150,9 @@ void entity_manager_load() {
                   s_entt.level_ref, 
                   nklvl->end_points[i].position, 
                   nklvl->end_points[i].scale, 
-                  ENTITY_END_POINT);
+                  ENTITY_END_POINT, 
+                  nikola::PHYSICS_BODY_STATIC, 
+                  true);
   }
 
   // Vehicles init
@@ -175,8 +179,8 @@ void entity_manager_save() {
 
   // Save the coin 
 
-  nklvl->coin_position  = nikola::physics_body_get_position(s_entt.coin.body); 
-  nklvl->has_coin       = s_entt.coin.is_active;
+  nklvl->coin_position = nikola::physics_body_get_position(s_entt.coin.body); 
+  nklvl->has_coin      = s_entt.coin.is_active;
 
   // Save the end points
 
@@ -214,8 +218,10 @@ void entity_manager_reset() {
 }
 
 void entity_manager_update() {
-  // AABB collision test
+  // AABB collision tests
+  
   if(entity_aabb_test(s_entt.player, s_entt.end_points[0])) {
+    nikola::physics_body_set_awake(s_entt.player.body, false);
     game_event_dispatch(GAME_EVENT_LEVEL_WON);
   }
 
@@ -249,6 +255,12 @@ void entity_manager_render() {
     nikola::transform_scale(transform, nikola::Vec3(0.02f));
     nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_COIN], transform);
   }
+
+  // Render the player 
+ 
+  transform = nikola::physics_body_get_transform(s_entt.player.body);
+  nikola::transform_scale(transform, nikola::collider_get_extents(s_entt.player.collider));
+  nikola::renderer_queue_mesh(s_entt.level_ref->resources[LEVEL_RESOURCE_CUBE], transform);
 
   // Debug rendering
   

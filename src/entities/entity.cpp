@@ -11,7 +11,8 @@ void entity_create(Entity* entity,
                    const nikola::Vec3& pos, 
                    const nikola::Vec3& scale, 
                    const EntityType entt_type, 
-                   const nikola::PhysicsBodyType body_type) {
+                   const nikola::PhysicsBodyType body_type, 
+                   const bool is_sensor) {
   // Entity variables init
   entity->type      = entt_type;
   entity->level_ref = lvl;
@@ -31,18 +32,18 @@ void entity_create(Entity* entity,
     .position  = nikola::Vec3(0.0f), 
     .extents   = scale,
     .friction  = 0.0f,
-    .is_sensor = (entity->type == ENTITY_END_POINT) || (entity->type == ENTITY_COIN),
+    .is_sensor = is_sensor,
   };
   entity->collider = nikola::physics_body_add_collider(entity->body, coll_desc);
 }
 
 const bool entity_aabb_test(Entity& entity, Entity& other) {
   nikola::Vec3 sum_size = nikola::collider_get_extents(entity.collider) + nikola::collider_get_extents(other.collider);
-  nikola::Vec3 diff     = nikola::physics_body_get_position(entity.body) - nikola::physics_body_get_position(other.body); 
+  nikola::Vec3 diff     = nikola::physics_body_get_position(other.body) - nikola::physics_body_get_position(entity.body); 
 
   // The sum of the sizes is greater than the difference between
   // the two boxes on ALL axises
-  return (nikola::abs(diff.x) < sum_size.x) && (nikola::abs(diff.y) < sum_size.y) && (nikola::abs(diff.z) < sum_size.z);
+  return nikola::abs(diff.x) < sum_size.x && nikola::abs(diff.y) < sum_size.y && nikola::abs(diff.z) < sum_size.z;
 }
 
 /// Generic entity functions

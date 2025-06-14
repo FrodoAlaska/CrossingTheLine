@@ -21,12 +21,12 @@ const float TILE_SIZE = 8.0f;
 /// ----------------------------------------------------------------------
 /// EntityType 
 enum EntityType {
-  ENTITY_PLAYER    = 0x20, 
-  ENTITY_VEHICLE   = 0x40, 
-  ENTITY_TILE      = 0x60,
-  ENTITY_END_POINT = 0x80,
-  ENTITY_OBJECT    = 0x80,
-  ENTITY_COIN      = 0x100,
+  ENTITY_PLAYER      = 0x20, 
+  ENTITY_VEHICLE     = 0x40, 
+  ENTITY_TILE        = 0x60,
+  ENTITY_END_POINT   = 0x80,
+  ENTITY_DEATH_POINT = 0x80,
+  ENTITY_COIN        = 0x100,
 };
 /// EntityType 
 /// ----------------------------------------------------------------------
@@ -70,7 +70,9 @@ struct Vehicle {
 
   VehicleType type;
   float acceleration; 
+
   nikola::Vec3 direction;
+  nikola::Vec4 rotation;
 };
 /// Vehicle 
 /// ----------------------------------------------------------------------
@@ -91,8 +93,9 @@ void entity_create(Entity* entity,
                    Level* lvl, 
                    const nikola::Vec3& pos, 
                    const nikola::Vec3& scale, 
-                   const EntityType entt_type = ENTITY_OBJECT, 
-                   const nikola::PhysicsBodyType body_type = nikola::PHYSICS_BODY_STATIC);
+                   const EntityType entt_type, 
+                   const nikola::PhysicsBodyType body_type = nikola::PHYSICS_BODY_STATIC, 
+                   const bool is_sensor = false);
 
 const bool entity_aabb_test(Entity& entity, Entity& other);
 
