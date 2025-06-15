@@ -105,6 +105,8 @@ struct Level {
   nikola::Camera gui_camera;
   nikola::Camera* current_camera;
   nikola::FrameData frame; 
+ 
+  nikola::Vec3 camera_lerp_dest;
   
   // Resources
 
@@ -116,7 +118,7 @@ struct Level {
   bool is_paused = false;
   bool has_coin  = true;
   bool can_lerp  = false;
-
+  
   // Debug stuff
   
   bool has_editor = false;

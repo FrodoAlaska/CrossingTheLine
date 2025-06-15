@@ -46,8 +46,15 @@ static void init_resources(Level* lvl) {
   lvl->resources[LEVEL_RESOURCE_COIN]  = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
 }
 
-static void lerp_camera(nikola::Camera& camera, const nikola::Vec3& to) {
-  camera.position = nikola::vec3_lerp(camera.position, to, nikola::niclock_get_delta_time());
+static void lerp_camera(Level* lvl) {
+  nikola::Camera* camera = &lvl->main_camera;
+
+  if(camera->position.x == lvl->camera_lerp_dest.x) {
+    lvl->can_lerp = false;
+    return;
+  }
+
+  camera->position = nikola::vec3_lerp(camera->position, lvl->camera_lerp_dest, nikola::niclock_get_delta_time());
 }
 
 /// Private functions
@@ -114,12 +121,12 @@ static bool level_event_callback(const GameEventType type, void* dispatcher, voi
 
   switch(type) {
     case GAME_EVENT_LEVEL_WON:
-      lvl->main_camera.is_active = false;
-      lvl->can_lerp              = true;
+      lvl->can_lerp         = true;
+      lvl->camera_lerp_dest = nikola::Vec3(50.0f, lvl->main_camera.position.y, lvl->main_camera.position.z);
       return true;
     case GAME_EVENT_LEVEL_LOST:
-      lvl->main_camera.is_active = false;
-      lvl->can_lerp              = true;
+      lvl->can_lerp         = true;
+      lvl->camera_lerp_dest = nikola::Vec3(-200.0f, lvl->main_camera.position.y, lvl->main_camera.position.z);
       return true;
     case GAME_EVENT_COIN_COLLECTED:
       lvl->has_coin = false;
@@ -235,9 +242,10 @@ void level_unload(Level* lvl) {
 void level_reset(Level* lvl) {
   // Reset variables
   lvl->is_paused = false; 
-  lvl->can_lerp  = false;
+  lvl->can_lerp  = true;
 
   // Reset the camera
+  lvl->camera_lerp_dest      = nikola::Vec3(-61.0f, 55.0f, 10.0f);
   lvl->main_camera.is_active = true;
 
   // Reset the entities
@@ -267,6 +275,10 @@ void level_update(Level* lvl) {
   }
 
   // Update state
+
+  if(lvl->can_lerp) {
+    lerp_camera(lvl);
+  }
 
   // Update tiles
   if(lvl->has_editor) {

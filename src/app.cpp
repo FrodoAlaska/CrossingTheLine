@@ -236,8 +236,8 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   init_levels(app);
 
   // @TODO: This might be useless, but it's just for testing purposes
-  // nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
-  // nikola::physics_world_set_iterations_count(5);
+  nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
+  nikola::physics_world_set_iterations_count(5);
 
   // Listen to events
   game_event_listen(GAME_EVENT_LEVEL_WON, on_state_change, app);

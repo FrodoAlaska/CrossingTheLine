@@ -14,6 +14,8 @@ struct EntityManager {
   Entity player, coin; 
   nikola::DynamicArray<Entity> end_points;
   nikola::DynamicArray<Vehicle> vehicles;
+
+  Entity death_point;
 };
 
 static EntityManager s_entt;
@@ -28,14 +30,13 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
 
   // Vehicle
   if(other->type == ENTITY_VEHICLE) {
-    other->is_active  = false; 
-
-    game_event_dispatch(GAME_EVENT_LEVEL_LOST);
-    nikola::physics_body_set_awake(other->body, false);
+    player->is_active = false;
     nikola::physics_body_set_awake(player->body, false);
+    
+    game_event_dispatch(GAME_EVENT_LEVEL_LOST);
   }
   // Coin 
-  else if(other->type == ENTITY_COIN && other->is_active) {
+  else if(other->type == ENTITY_COIN) {
     // Eat the coin
     other->is_active = false; 
     nikola::physics_body_set_awake(other->body, false);
@@ -61,8 +62,14 @@ static void on_entity_collision(const nikola::CollisionPoint& point) {
   // Getting the entities
   Entity* entt_a = (Entity*)nikola::physics_body_get_user_data(point.body_a);
   Entity* entt_b = (Entity*)nikola::physics_body_get_user_data(point.body_b);
- 
-  // @TEMP: Yeah. Terrible. I know.
+
+  // @NOTE: Yeah. Terrible. I know.
+
+  // This might cause problems, but we do not 
+  // care for entities that are inactive. 
+  if(!entt_a->is_active || !entt_b->is_active) {
+    return;
+  }
 
   // Player collisions
   
@@ -101,6 +108,9 @@ void entity_manager_destroy() {
   // Player destroy
   nikola::physics_body_destroy(s_entt.player.body);
 
+  // Death point destroy
+  nikola::physics_body_destroy(s_entt.death_point.body);
+
   // Coin destroy 
   nikola::physics_body_destroy(s_entt.coin.body);
 
@@ -124,6 +134,16 @@ void entity_manager_load() {
   // Player init
   player_create(&s_entt.player, s_entt.level_ref, nklvl->start_position);
 
+  // Death point init
+  
+  entity_create(&s_entt.death_point, 
+                s_entt.level_ref, 
+                nikola::Vec3(10.0f, -18.0f, 10.0f),
+                nikola::Vec3(128.0f, 1.0f, 128.0f),
+                ENTITY_DEATH_POINT, 
+                nikola::PHYSICS_BODY_STATIC, 
+                true);
+
   // Coin init
   
   if(nklvl->has_coin) {
@@ -132,7 +152,8 @@ void entity_manager_load() {
                   nklvl->coin_position,
                   nikola::Vec3(1.4f, 0.5f, 4.0f),
                   ENTITY_COIN, 
-                  nikola::PHYSICS_BODY_DYNAMIC);
+                  nikola::PHYSICS_BODY_DYNAMIC, 
+                  true);
 
     nikola::collider_set_local_position(s_entt.coin.collider, nikola::Vec3(0.0f, 0.0f, 1.6f));
     
@@ -221,8 +242,17 @@ void entity_manager_update() {
   // AABB collision tests
   
   if(entity_aabb_test(s_entt.player, s_entt.end_points[0])) {
+    s_entt.player.is_active = false;
     nikola::physics_body_set_awake(s_entt.player.body, false);
+    
     game_event_dispatch(GAME_EVENT_LEVEL_WON);
+  }
+  
+  if(entity_aabb_test(s_entt.player, s_entt.death_point)) {
+    s_entt.player.is_active = false;
+    nikola::physics_body_set_awake(s_entt.player.body, false);
+    
+    game_event_dispatch(GAME_EVENT_LEVEL_LOST);
   }
 
   // Player update
@@ -275,6 +305,9 @@ void entity_manager_render() {
 
     // Coin 
     nikola::renderer_debug_collider(s_entt.coin.collider); 
+  
+    // Death point 
+    nikola::renderer_debug_collider(s_entt.death_point.collider); 
   }
 }
 
