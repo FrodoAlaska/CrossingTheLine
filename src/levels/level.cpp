@@ -15,6 +15,17 @@ const nikola::u8 NKLVL_VERSION_MINOR = 2;
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// LerpPointType
+enum LerpPointType {
+  LERP_POINT_START = 0, 
+  LERP_POINT_WIN,
+  LERP_POINT_LOSE,
+  LERP_POINT_DEFAULT,
+};
+/// LerpPointType
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// Private functions
 
 static void init_resources(Level* lvl) {
@@ -41,20 +52,15 @@ static void init_resources(Level* lvl) {
 
   // Models init
 
-  lvl->resources[LEVEL_RESOURCE_CAR]   = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_TRUCK] = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_COIN]  = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_CAR]    = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_TRUCK]  = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_COIN]   = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
 }
 
 static void lerp_camera(Level* lvl) {
-  nikola::Camera* camera = &lvl->main_camera;
+  nikola::Camera* camera  = &lvl->main_camera;
 
-  if(camera->position.x == lvl->camera_lerp_dest.x) {
-    lvl->can_lerp = false;
-    return;
-  }
-
-  camera->position = nikola::vec3_lerp(camera->position, lvl->camera_lerp_dest, nikola::niclock_get_delta_time() * 1.5f);
+  camera->position = nikola::vec3_lerp(camera->position, lvl->current_lerp_point, nikola::niclock_get_delta_time() * 1.5f);
 }
 
 /// Private functions
@@ -121,12 +127,10 @@ static bool level_event_callback(const GameEventType type, void* dispatcher, voi
 
   switch(type) {
     case GAME_EVENT_LEVEL_WON:
-      lvl->can_lerp         = true;
-      lvl->camera_lerp_dest = nikola::Vec3(50.0f, lvl->main_camera.position.y, lvl->main_camera.position.z);
+      lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_WIN];
       return true;
     case GAME_EVENT_LEVEL_LOST:
-      lvl->can_lerp         = true;
-      lvl->camera_lerp_dest = nikola::Vec3(-200.0f, lvl->main_camera.position.y, lvl->main_camera.position.z);
+      lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_LOSE];
       return true;
     case GAME_EVENT_COIN_COLLECTED:
       lvl->has_coin = false;
@@ -148,9 +152,18 @@ Level* level_create(nikola::Window* window) {
   // Window init
   lvl->window_ref = window;
 
+  // Lerp points init
+
+  lvl->lerp_points[LERP_POINT_START]   = nikola::Vec3(-61.0f, 55.0f, 10.0f);
+  lvl->lerp_points[LERP_POINT_WIN]     = nikola::Vec3(50.0f, 55.0f, 10.0f);
+  lvl->lerp_points[LERP_POINT_LOSE]    = nikola::Vec3(0.0f, 150.0f, 10.0f);
+  lvl->lerp_points[LERP_POINT_DEFAULT] = nikola::Vec3(100.0f, 55.0f, 10.0f);
+  
+  lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_DEFAULT];
+
   // Main camera init
   nikola::CameraDesc cam_desc = {
-    .position     = nikola::Vec3(-61.0f, 55.0f, 10.0f),
+    .position     = lvl->current_lerp_point,
     .target       = nikola::Vec3(0.0f, 55.0f, -3.0f),
     .up_axis      = nikola::Vec3(0.0f, 1.0f, 0.0f),
     .aspect_ratio = nikola::window_get_aspect_ratio(lvl->window_ref),
@@ -160,10 +173,10 @@ Level* level_create(nikola::Window* window) {
   lvl->main_camera.yaw       = 0.2f;
   lvl->main_camera.pitch     = -43.6f;
   lvl->main_camera.far       = 150.0f;
-  lvl->main_camera.is_active = false;
 
   // GUI camera init
   nikola::camera_create(&lvl->gui_camera, cam_desc);
+  lvl->gui_camera.position = lvl->lerp_points[LERP_POINT_START]; 
   lvl->gui_camera.move_fn  = editor_camera_func; 
   lvl->gui_camera.far      = 500.0f;
   lvl->gui_camera.yaw      = 0.0f;
@@ -213,7 +226,7 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
 
   // Load tiles
   tile_manager_load();
-
+  
   NIKOLA_PERF_TIMER_END(timer, (nikola::filepath_filename(path) + " loaded").c_str());
   return true;
 }
@@ -242,11 +255,9 @@ void level_unload(Level* lvl) {
 void level_reset(Level* lvl) {
   // Reset variables
   lvl->is_paused = false; 
-  lvl->can_lerp  = true;
-
-  // Reset the camera
-  lvl->camera_lerp_dest      = nikola::Vec3(-61.0f, 55.0f, 10.0f);
-  lvl->main_camera.is_active = true;
+  
+  // Reset camera
+  lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_START];
 
   // Reset the entities
   entity_manager_reset();
@@ -276,9 +287,8 @@ void level_update(Level* lvl) {
 
   // Update state
 
-  if(lvl->can_lerp) {
-    lerp_camera(lvl);
-  }
+  // Keep lerping the camera which is honestly a bad idea
+  lerp_camera(lvl);
 
   // Update tiles
   if(lvl->has_editor) {

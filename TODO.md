@@ -1,8 +1,8 @@
 # Road to MVP (Minimal Viable Product) 
 
 - Core mechanic/game loop: 
-    - Decide on what to have to hide the end points of the car and what will be the "object" that will signify the end point (a cone? a literal line?).
     - A hub world.
+    - Decide on what to have to hide the end points of the car and what will be the "object" that will signify the end point (a cone? a literal line?).
 
 - Polish points: 
     - Pause menu?

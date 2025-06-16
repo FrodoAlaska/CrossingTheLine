@@ -105,6 +105,14 @@ void tile_manager_update() {
                 TILE_PAVIMENT, 
                 s_tiles.debug_selection + nikola::Vec3(0.0f, 0.3f, 0.0f));
   }
+  else if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_3)) {
+    s_tiles.tiles.resize(s_tiles.tiles.size() + 1);
+
+    tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], 
+                s_tiles.level_ref, 
+                TILE_TUNNEL, 
+                s_tiles.debug_selection);
+  }
 }
 
 void tile_manager_render() {

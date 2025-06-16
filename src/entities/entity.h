@@ -45,6 +45,7 @@ enum VehicleType {
 enum TileType {
   TILE_ROAD, 
   TILE_PAVIMENT,
+  TILE_TUNNEL,
 };
 /// TileType 
 /// ----------------------------------------------------------------------

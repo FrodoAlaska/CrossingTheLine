@@ -25,14 +25,14 @@ const nikola::sizei VEHICLES_MAX   = 12;
 enum LevelResourceType {
   LEVEL_RESOURCE_CUBE = 0,
 
-  LEVEL_RESOURCE_MATERIAL_PAVIMENT = 1,
-  LEVEL_RESOURCE_MATERIAL_ROAD     = 2,
+  LEVEL_RESOURCE_MATERIAL_PAVIMENT,
+  LEVEL_RESOURCE_MATERIAL_ROAD,
 
-  LEVEL_RESOURCE_CAR   = 3,
-  LEVEL_RESOURCE_TRUCK = 4,
-  LEVEL_RESOURCE_COIN  = 5,
+  LEVEL_RESOURCE_CAR,
+  LEVEL_RESOURCE_TRUCK,
+  LEVEL_RESOURCE_COIN,
 
-  LEVEL_RESOURCE_FONT = 6,
+  LEVEL_RESOURCE_FONT,
 
   LEVEL_RESOURCES_MAX = LEVEL_RESOURCE_FONT + 1,
 };
@@ -106,8 +106,6 @@ struct Level {
   nikola::Camera gui_camera;
   nikola::Camera* current_camera;
   nikola::FrameData frame; 
- 
-  nikola::Vec3 camera_lerp_dest;
   
   // Resources
 
@@ -116,9 +114,11 @@ struct Level {
 
   // State
 
+  nikola::Vec3 lerp_points[4];
+  nikola::Vec3 current_lerp_point;
+
   bool is_paused = false;
   bool has_coin  = true;
-  bool can_lerp  = false;
   
   // Debug stuff
   
