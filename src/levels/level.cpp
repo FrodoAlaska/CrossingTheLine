@@ -271,7 +271,8 @@ void level_update(Level* lvl) {
     lvl->has_editor       = !lvl->has_editor;
     lvl->debug_mode       = lvl->has_editor;
     lvl->current_camera   = lvl->has_editor ? &lvl->gui_camera : &lvl->main_camera;
-    
+    lvl->is_paused        = lvl->has_editor; 
+
     nikola::physics_world_set_paused(lvl->has_editor);
     nikola::input_cursor_show(lvl->has_editor);
   }
@@ -371,9 +372,8 @@ void level_render_gui(Level* lvl) {
    
     // Paused mode
     ImGui::SameLine();
-    static bool paused = true; 
-    if(ImGui::Checkbox("Paused", &paused)) {
-      nikola::physics_world_set_paused(paused);
+    if(ImGui::Checkbox("Paused", &lvl->is_paused)) {
+      nikola::physics_world_set_paused(lvl->is_paused);
     }
 
     // Save the level

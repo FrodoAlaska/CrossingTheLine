@@ -13,9 +13,9 @@
 /// Besides that, they help to set light boundries to the amount of 
 /// entities we can have in a level. Again, though, they are not "set in stone", per se. 
 
-const nikola::sizei END_POINTS_MAX = 6;
-const nikola::sizei TILES_MAX      = 256;
-const nikola::sizei VEHICLES_MAX   = 12;
+const nikola::sizei POINTS_MAX   = 6;
+const nikola::sizei TILES_MAX    = 256;
+const nikola::sizei VEHICLES_MAX = 12;
 
 /// Consts
 /// ----------------------------------------------------------------------
@@ -65,8 +65,8 @@ struct NKLevelFile {
     nikola::u16 type;
   };
 
-  nikola::sizei end_points_count = 0;
-  NKEntity end_points[END_POINTS_MAX];
+  nikola::sizei points_count = 0;
+  NKEntity points[POINTS_MAX];
 
   // Vehicles
 

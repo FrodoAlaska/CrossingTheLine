@@ -12,10 +12,8 @@ struct EntityManager {
   Level* level_ref;
 
   Entity player, coin; 
-  nikola::DynamicArray<Entity> end_points;
+  nikola::DynamicArray<Entity> points;
   nikola::DynamicArray<Vehicle> vehicles;
-
-  Entity death_point;
 };
 
 static EntityManager s_entt;
@@ -46,8 +44,8 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
 }
 
 static void resolve_vehicle_collisions(Entity* vehicle, Entity* other) {
-  // End point
-  if(other->type == ENTITY_END_POINT) {
+  // Point
+  if(other->type == ENTITY_VEHICLE_POINT) {
     nikola::physics_body_set_position(vehicle->body, vehicle->start_pos);
   }
 }
@@ -108,17 +106,14 @@ void entity_manager_destroy() {
   // Player destroy
   nikola::physics_body_destroy(s_entt.player.body);
 
-  // Death point destroy
-  nikola::physics_body_destroy(s_entt.death_point.body);
-
   // Coin destroy 
   nikola::physics_body_destroy(s_entt.coin.body);
 
   // End points destroy
-  for(auto& point : s_entt.end_points) {
+  for(auto& point : s_entt.points) {
     nikola::physics_body_destroy(point.body);
   }
-  s_entt.end_points.clear();
+  s_entt.points.clear();
 
   // Vehicles destroy
   for(auto& v : s_entt.vehicles) {
@@ -133,16 +128,6 @@ void entity_manager_load() {
 
   // Player init
   player_create(&s_entt.player, s_entt.level_ref, nklvl->start_position);
-
-  // Death point init
-  
-  entity_create(&s_entt.death_point, 
-                s_entt.level_ref, 
-                nikola::Vec3(10.0f, -18.0f, 10.0f),
-                nikola::Vec3(128.0f, 1.0f, 128.0f),
-                ENTITY_DEATH_POINT, 
-                nikola::PHYSICS_BODY_STATIC, 
-                true);
 
   // Coin init
   
@@ -161,17 +146,17 @@ void entity_manager_load() {
     nikola::physics_body_set_angular_velocity(s_entt.coin.body, nikola::Vec3(0.0f, 1.0f, 0.0f));
   }
 
-  // End points init
+  // Points init
 
-  s_entt.end_points.resize(nklvl->end_points_count);
-  for(nikola::sizei i = 0; i < s_entt.end_points.size(); i++) {
-    Entity* point = &s_entt.end_points[i];
+  s_entt.points.resize(nklvl->points_count);
+  for(nikola::sizei i = 0; i < s_entt.points.size(); i++) {
+    Entity* point = &s_entt.points[i];
 
     entity_create(point, 
                   s_entt.level_ref, 
-                  nklvl->end_points[i].position, 
-                  nklvl->end_points[i].scale, 
-                  (EntityType)nklvl->end_points[i].type,
+                  nklvl->points[i].position, 
+                  nklvl->points[i].scale, 
+                  (EntityType)nklvl->points[i].type,
                   nikola::PHYSICS_BODY_STATIC, 
                   true);
   }
@@ -205,13 +190,13 @@ void entity_manager_save() {
 
   // Save the end points
 
-  nklvl->end_points_count = s_entt.end_points.size();
-  for(nikola::sizei i = 0; i < s_entt.end_points.size(); i++) {
-    Entity* point = &s_entt.end_points[i];
+  nklvl->points_count = s_entt.points.size();
+  for(nikola::sizei i = 0; i < s_entt.points.size(); i++) {
+    Entity* point = &s_entt.points[i];
 
-    nklvl->end_points[i].position = nikola::physics_body_get_position(point->body);
-    nklvl->end_points[i].scale    = nikola::collider_get_extents(point->collider);
-    nklvl->end_points[i].type     = (nikola::u16)point->type;
+    nklvl->points[i].position = nikola::physics_body_get_position(point->body);
+    nklvl->points[i].scale    = nikola::collider_get_extents(point->collider);
+    nklvl->points[i].type     = (nikola::u16)point->type;
   }
 
   // Save the vehicles
@@ -242,20 +227,27 @@ void entity_manager_reset() {
 void entity_manager_update() {
   // AABB collision tests
  
-  // End points test
-  if(entity_aabb_test(s_entt.player, s_entt.end_points[0])) {
+  // Points test
+  
+  for(auto& point : s_entt.points) {
+    if(!entity_aabb_test(s_entt.player, point)) {
+      continue;
+    }
+    
     s_entt.player.is_active = false;
     nikola::physics_body_set_awake(s_entt.player.body, false);
-    
-    game_event_dispatch(GAME_EVENT_LEVEL_WON);
-  }
 
-  // Death points test
-  if(entity_aabb_test(s_entt.player, s_entt.death_point)) {
-    s_entt.player.is_active = false;
-    nikola::physics_body_set_awake(s_entt.player.body, false);
-    
-    game_event_dispatch(GAME_EVENT_LEVEL_LOST);
+    switch(point.type) {
+      case ENTITY_END_POINT: 
+        game_event_dispatch(GAME_EVENT_LEVEL_WON);
+        break;
+      case ENTITY_VEHICLE_POINT: 
+        game_event_dispatch(GAME_EVENT_LEVEL_LOST);
+        break;
+      case ENTITY_DEATH_POINT: 
+        game_event_dispatch(GAME_EVENT_LEVEL_LOST);
+        break;
+    }
   }
 
   // Player update
@@ -301,16 +293,13 @@ void entity_manager_render() {
     // Player
     nikola::renderer_debug_collider(s_entt.player.collider);
 
-    // End points
-    for(auto& point : s_entt.end_points) {
+    // Points
+    for(auto& point : s_entt.points) {
       nikola::renderer_debug_collider(point.collider);
     }
 
     // Coin 
     nikola::renderer_debug_collider(s_entt.coin.collider); 
-  
-    // Death point 
-    nikola::renderer_debug_collider(s_entt.death_point.collider); 
   }
 }
 
@@ -344,11 +333,11 @@ void entity_manager_render_gui() {
   
   // Points
   if(ImGui::CollapsingHeader("Points")) {
-    ImGui::Text("End points count: %zu", s_entt.end_points.size());
+    ImGui::Text("End points count: %zu", s_entt.points.size());
 
-    for(nikola::sizei i = 0; i < s_entt.end_points.size(); i++) {
+    for(nikola::sizei i = 0; i < s_entt.points.size(); i++) {
       nikola::String name = ("Point " + std::to_string(i)); 
-      Entity* entity      = &s_entt.end_points[i];
+      Entity* entity      = &s_entt.points[i];
       
       ImGui::SeparatorText(name.c_str());
       ImGui::PushID(name.c_str());
@@ -364,11 +353,26 @@ void entity_manager_render_gui() {
       nikola::Vec3 size = nikola::collider_get_extents(entity->collider);
       if(ImGui::DragFloat3("Extents", &size[0], 0.1f)) {
         nikola::collider_set_extents(entity->collider, size);
+      } 
+
+      // Type
+      if(ImGui::BeginCombo("Type", "End point")) {
+        if(ImGui::Selectable("End point")) {
+          entity->type = ENTITY_END_POINT;
+        } 
+        else if(ImGui::Selectable("Vehicle point")) {
+          entity->type = ENTITY_VEHICLE_POINT;
+        }
+        else if(ImGui::Selectable("Death point")) {
+          entity->type = ENTITY_DEATH_POINT;
+        }
+
+        ImGui::EndCombo();
       }
       
-      // Remove the end point
+      // Remove the point
       if(ImGui::Button("Remove")) {
-        s_entt.end_points.erase(s_entt.end_points.begin() + i);
+        s_entt.points.erase(s_entt.points.begin() + i);
       }
       
       ImGui::PopID();
@@ -384,14 +388,19 @@ void entity_manager_render_gui() {
     static nikola::Vec3 scale = nikola::Vec3(1.0f);
     ImGui::DragFloat3("Scale", &scale[0], 0.1f);
 
-    // Add an end point
-    if(ImGui::Button("Add end point")) {
-      s_entt.end_points.resize(s_entt.end_points.size() + 1);
-      entity_create(&s_entt.end_points[s_entt.end_points.size() - 1],
+    // Type 
+    static int current_point = 0; 
+    EntityType point_types[] = {ENTITY_END_POINT, ENTITY_VEHICLE_POINT, ENTITY_DEATH_POINT};
+    ImGui::Combo("Type", &current_point, "End point\0Vehicle point\0Death point\0\0");
+
+    // Add an point
+    if(ImGui::Button("Add point")) {
+      s_entt.points.resize(s_entt.points.size() + 1);
+      entity_create(&s_entt.points[s_entt.points.size() - 1],
                     s_entt.level_ref,
                     position,
                     scale,
-                    ENTITY_END_POINT);
+                    point_types[current_point]);
     }
   }
   

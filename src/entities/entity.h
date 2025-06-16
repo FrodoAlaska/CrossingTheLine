@@ -24,9 +24,12 @@ enum EntityType {
   ENTITY_PLAYER      = 0x20, 
   ENTITY_VEHICLE     = 0x40, 
   ENTITY_TILE        = 0x60,
-  ENTITY_END_POINT   = 0x80,
-  ENTITY_DEATH_POINT = 0x80,
-  ENTITY_COIN        = 0x100,
+
+  ENTITY_END_POINT     = 0x80,
+  ENTITY_DEATH_POINT   = 0x100,
+  ENTITY_VEHICLE_POINT = 0x120,
+  
+  ENTITY_COIN        = 0x140,
 };
 /// EntityType 
 /// ----------------------------------------------------------------------
