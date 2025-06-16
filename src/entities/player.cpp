@@ -6,7 +6,7 @@
 /// ----------------------------------------------------------------------
 /// Consts
 
-const float PLAYER_SPEED = 12.0f;
+const float PLAYER_SPEED = 15.0f;
 
 /// Consts
 /// ----------------------------------------------------------------------
@@ -84,6 +84,14 @@ void player_update(Entity& player) {
   }
   
   nikola::physics_body_set_linear_velocity(player.body, velocity);
+
+  // Clamp the position 
+ 
+  nikola::Vec3 min_pos = nikola::Vec3(-27.35f, 0.350f, -27.0f);
+  nikola::Vec3 max_pos = nikola::Vec3(43.3f, 0.350f, 43.6f);
+
+  nikola::Vec3 clamped_position = nikola::vec3_clamp(nikola::physics_body_get_position(player.body), min_pos, max_pos);
+  nikola::physics_body_set_position(player.body, clamped_position);
 }
 
 /// Player functions

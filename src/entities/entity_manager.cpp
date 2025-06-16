@@ -171,7 +171,7 @@ void entity_manager_load() {
                   s_entt.level_ref, 
                   nklvl->end_points[i].position, 
                   nklvl->end_points[i].scale, 
-                  ENTITY_END_POINT, 
+                  (EntityType)nklvl->end_points[i].type,
                   nikola::PHYSICS_BODY_STATIC, 
                   true);
   }
@@ -211,6 +211,7 @@ void entity_manager_save() {
 
     nklvl->end_points[i].position = nikola::physics_body_get_position(point->body);
     nklvl->end_points[i].scale    = nikola::collider_get_extents(point->collider);
+    nklvl->end_points[i].type     = (nikola::u16)point->type;
   }
 
   // Save the vehicles
@@ -240,14 +241,16 @@ void entity_manager_reset() {
 
 void entity_manager_update() {
   // AABB collision tests
-  
+ 
+  // End points test
   if(entity_aabb_test(s_entt.player, s_entt.end_points[0])) {
     s_entt.player.is_active = false;
     nikola::physics_body_set_awake(s_entt.player.body, false);
     
     game_event_dispatch(GAME_EVENT_LEVEL_WON);
   }
-  
+
+  // Death points test
   if(entity_aabb_test(s_entt.player, s_entt.death_point)) {
     s_entt.player.is_active = false;
     nikola::physics_body_set_awake(s_entt.player.body, false);
@@ -279,9 +282,9 @@ void entity_manager_render() {
 
   // Render the coin
   
-  transform = nikola::physics_body_get_transform(s_entt.coin.body);
-  
   if(s_entt.coin.is_active) {
+    transform = nikola::physics_body_get_transform(s_entt.coin.body);
+    
     nikola::transform_scale(transform, nikola::Vec3(0.02f));
     nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_COIN], transform);
   }

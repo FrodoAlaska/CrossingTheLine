@@ -103,5 +103,25 @@ void ui_layout_render(UILayout& layout) {
                             current_text->color); 
 }
 
+void ui_layout_render_animation(UILayout& layout, const UITextAnimation anim_type, const float duration) {
+  if(!layout.is_active) {
+    return;
+  }
+
+  // Render the texts
+  for(auto& text : layout.texts) {
+    ui_text_render_animation(text, anim_type, duration);
+  }
+
+  // Render the cursor
+  
+  UIText* current_text  = &layout.texts[layout.current_option];
+  nikola::batch_render_text(current_text->font, 
+                            ">",
+                            current_text->position - nikola::Vec2(current_text->font_size, 0.0f),
+                            current_text->font_size, 
+                            current_text->color); 
+}
+
 /// UILayout functions
 /// ----------------------------------------------------------------------

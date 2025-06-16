@@ -137,5 +137,7 @@ void ui_layout_update(UILayout& layout);
 
 void ui_layout_render(UILayout& layout);
 
+void ui_layout_render_animation(UILayout& layout, const UITextAnimation anim_type, const float duration);
+
 /// UILayout functions
 /// ----------------------------------------------------------------------

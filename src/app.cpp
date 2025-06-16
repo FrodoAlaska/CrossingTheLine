@@ -9,7 +9,7 @@
 /// ----------------------------------------------------------------------
 /// Consts
 
-const nikola::sizei LEVELS_MAX = 5;
+const nikola::sizei LEVELS_MAX = 4;
 
 /// Consts
 /// ----------------------------------------------------------------------
@@ -47,6 +47,7 @@ enum WonOptionID {
 /// LostOptionID
 enum LostOptionID {
   LOST_OPTION_RETRY = 0, 
+  LOST_OPTION_QUIT,
 };
 /// LostOptionID
 /// ----------------------------------------------------------------------
@@ -113,6 +114,9 @@ static void on_lost_layout_click_func(UILayout& layout, UIText& text, void* user
       level_reset(app->level);
       app->current_state = GAME_STATE_LEVEL;
       break;
+    case LOST_OPTION_QUIT:
+      nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
+      break;
   }
 }
 
@@ -151,12 +155,11 @@ static void init_levels(nikola::App* app) {
   app->level_paths[1] = nikola::filepath_append(current_path, "levels/level_2.nklvl");
   app->level_paths[2] = nikola::filepath_append(current_path, "levels/level_3.nklvl");;
   app->level_paths[3] = nikola::filepath_append(current_path, "levels/level_4.nklvl");;
-  app->level_paths[4] = nikola::filepath_append(current_path, "levels/level_5.nklvl");;
 
   // Current level init
   
   app->level = level_create(app->window);
-  level_load(app->level, app->level_paths[0]);
+  level_load(app->level, app->level_paths[app->current_level]);
 }
 
 static void init_game_states(nikola::App* app) {
@@ -176,7 +179,7 @@ static void init_game_states(nikola::App* app) {
     .font_size = 50.0f,
 
     .anchor = UI_ANCHOR_TOP_CENTER, 
-    .color  = nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f),
+    .color  = nikola::Vec4(1.0f, 0.0f, 0.0f, 0.0f),
   }; 
   ui_text_create(&app->game_states[GAME_STATE_MENU].title, app->window, text_desc);
 
@@ -195,7 +198,7 @@ static void init_game_states(nikola::App* app) {
                    app);
  
   ui_layout_begin(*won_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
-  ui_layout_push_text(*won_layout, "Continue", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+  ui_layout_push_text(*won_layout, "Continue the suffering", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 0.0f));
   ui_layout_end(*won_layout);
   
   // Lost state
@@ -208,7 +211,8 @@ static void init_game_states(nikola::App* app) {
                    app);
  
   ui_layout_begin(*lost_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
-  ui_layout_push_text(*lost_layout, "Retry", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+  ui_layout_push_text(*lost_layout, "Relive", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 0.0f));
+  ui_layout_push_text(*lost_layout, "End it", 40.0f, nikola::Vec4(0.0f, 1.0f, 0.0f, 0.0f));
   ui_layout_end(*lost_layout);
 }
 
@@ -279,8 +283,8 @@ void app_render(nikola::App* app) {
   
   // Render the current state's layout
   
-  ui_text_render(app->game_states[app->current_state].title);
-  ui_layout_render(app->game_states[app->current_state].layout);
+  ui_text_render_animation(app->game_states[app->current_state].title, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
+  ui_layout_render_animation(app->game_states[app->current_state].layout, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
 
   nikola::batch_renderer_end();
 }
@@ -301,7 +305,7 @@ void app_render_gui(nikola::App* app) {
   // Level select
   nikola::gui_begin_panel("Level select"); 
  
-  if(ImGui::Combo("Select level", &app->current_level, "Level 1\0Level 2\0Level 3\0Level 4\0Level 5\0\0")) {
+  if(ImGui::Combo("Select level", &app->current_level, "Level 1\0Level 2\0Level 3\0Level 4\0\0")) {
     level_unload(app->level);
     level_load(app->level, app->level_paths[app->current_level]);
   }

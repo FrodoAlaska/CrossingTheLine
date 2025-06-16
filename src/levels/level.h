@@ -62,6 +62,7 @@ struct NKLevelFile {
   struct NKEntity {
     nikola::Vec3 position; 
     nikola::Vec3 scale;
+    nikola::u16 type;
   };
 
   nikola::sizei end_points_count = 0;

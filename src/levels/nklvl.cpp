@@ -48,6 +48,7 @@ const bool nklvl_file_load(NKLevelFile* nklvl, const nikola::FilePath& path) {
   for(nikola::sizei i = 0; i < nklvl->end_points_count; i++) {
     nikola::file_read_bytes(file, &nklvl->end_points[i].position[0], sizeof(nikola::Vec3));
     nikola::file_read_bytes(file, &nklvl->end_points[i].scale[0], sizeof(nikola::Vec3));
+    nikola::file_read_bytes(file, &nklvl->end_points[i].type, sizeof(nikola::u16));
   }
 
   // Read the vehicles
@@ -100,6 +101,7 @@ void nklvl_file_save(const NKLevelFile& nklvl) {
   for(nikola::sizei i = 0; i < nklvl.end_points_count; i++) {
     nikola::file_write_bytes(file, &nklvl.end_points[i].position[0], sizeof(nikola::Vec3));
     nikola::file_write_bytes(file, &nklvl.end_points[i].scale[0], sizeof(nikola::Vec3));
+    nikola::file_write_bytes(file, &nklvl.end_points[i].type, sizeof(nikola::u16));
   }
 
   // Wrtie the vehicles

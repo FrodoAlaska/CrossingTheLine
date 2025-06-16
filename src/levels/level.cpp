@@ -54,7 +54,7 @@ static void lerp_camera(Level* lvl) {
     return;
   }
 
-  camera->position = nikola::vec3_lerp(camera->position, lvl->camera_lerp_dest, nikola::niclock_get_delta_time());
+  camera->position = nikola::vec3_lerp(camera->position, lvl->camera_lerp_dest, nikola::niclock_get_delta_time() * 1.5f);
 }
 
 /// Private functions
@@ -83,7 +83,7 @@ static bool mouse_scroll_event(const nikola::Event& event, const void* dispatche
 static void editor_camera_func(nikola::Camera& camera) {
   float speed = 50.0f * nikola::niclock_get_delta_time();
 
-  if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT)) {
+  if(nikola::input_key_down(nikola::KEY_LEFT_ALT)) {
     nikola::Vec2 mouse_offset; 
     nikola::input_mouse_offset(&mouse_offset.x, &mouse_offset.y);
   
@@ -93,7 +93,7 @@ static void editor_camera_func(nikola::Camera& camera) {
     
     nikola::input_cursor_show(false);
   } 
-  else if(nikola::input_key_released(nikola::KEY_LEFT_SHIFT)) {
+  else if(nikola::input_key_released(nikola::KEY_LEFT_ALT)) {
     nikola::input_cursor_show(true);
   }
 
