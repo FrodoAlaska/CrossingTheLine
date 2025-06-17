@@ -112,6 +112,10 @@ struct Level {
   nikola::ResourceGroupID resource_group;
   nikola::ResourceID resources[LEVEL_RESOURCES_MAX];
 
+  // UI
+
+  UILayout pause_layout;
+
   // State
 
   nikola::Vec3 lerp_points[4];

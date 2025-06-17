@@ -6,14 +6,12 @@
     - Save the keys collected
 
 - Polish points: 
-    - Pause menu?
+    - Fog 
+    - Slightly better movements
     - Fix the text placing. Some texts with bigger font sizes have weird widths.
     - UI navigation 
-    - Add the story through the UI. Some little things here and there on the end menus and maybe something that pops up when you pickup the keys.
-    - Fog 
-    - Smooth transition between states 
     - UI sounds 
-    - Slightly better movements
+    - Add the story through the UI. Some little things here and there on the end menus and maybe something that pops up when you pickup the keys.
 
 - Get some assets:
     - Truck 

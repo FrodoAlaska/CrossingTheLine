@@ -10,6 +10,7 @@
 /// Consts
 
 const nikola::sizei LEVEL_GROUPS_MAX = 4;
+const nikola::sizei GROUP_TEXTS_MAX  = 4;
 
 /// Consts
 /// ----------------------------------------------------------------------
@@ -20,7 +21,8 @@ struct LevelGroup {
   nikola::String name; 
 
   nikola::DynamicArray<nikola::FilePath> level_paths;
-  nikola::sizei current_level = 0;
+  nikola::sizei current_level   = 0;
+  nikola::sizei coins_collected = 0;
 };
 /// LevelGroup
 /// ----------------------------------------------------------------------
@@ -33,7 +35,7 @@ struct LevelManager {
   LevelGroup groups[LEVEL_GROUPS_MAX];
   nikola::sizei current_group = 1;
   
-  UIText texts[3];
+  UIText texts[GROUP_TEXTS_MAX];
   bool can_show_hud = false;
 };
 
@@ -70,8 +72,13 @@ static void init_group_ui(nikola::Window* window) {
   ui_text_create(&s_manager.texts[1], window, text_desc);
   
   text_desc.string = "KEYS COLLECTED COUNT";
-  text_desc.offset = nikola::Vec2(0.0f, 60.0f);
+  text_desc.offset = nikola::Vec2(0.0f, 50.0f);
   ui_text_create(&s_manager.texts[2], window, text_desc);
+  
+  text_desc.string = "Press [ENTER] To Start";
+  text_desc.color  = nikola::Vec4(0.0f, 1.0f, 0.0f, 0.0f);
+  text_desc.offset = nikola::Vec2(0.0f, 90.0f);
+  ui_text_create(&s_manager.texts[3], window, text_desc);
 }
 
 static nikola::sizei get_index_from_pos(Entity* point) {
@@ -107,7 +114,7 @@ static bool on_chapter_changed(const GameEventType type, void* dispatcher, void*
   nikola::String levels_count = (std::to_string(group->current_level) + '/' + std::to_string(group->level_paths.size()));
   ui_text_set_string(s_manager.texts[1], levels_count);
  
-  nikola::String keys_left = ("Keys: 0/" + std::to_string(group->level_paths.size()));
+  nikola::String keys_left = ("Keys: " + std::to_string(group->coins_collected) + '/' + std::to_string(group->level_paths.size()));
   ui_text_set_string(s_manager.texts[2], keys_left);
 
   // Enable the hud for the specific group
@@ -118,6 +125,17 @@ static bool on_chapter_changed(const GameEventType type, void* dispatcher, void*
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
     level_reset(s_manager.current_level);
   }
+
+  return true;
+}
+
+static bool on_coin_collected(const GameEventType type, void* dispatcher, void* listener) {
+  if(type != GAME_EVENT_COIN_COLLECTED) {
+    return false;
+  }
+  
+  LevelGroup* group = &s_manager.groups[s_manager.current_group];
+  group->coins_collected++;
 
   return true;
 }
@@ -163,6 +181,7 @@ void level_manager_init(nikola::Window* window) {
 
   // Listen to events
   game_event_listen(GAME_EVENT_CHAPTER_CHANGED, on_chapter_changed);
+  game_event_listen(GAME_EVENT_COIN_COLLECTED, on_coin_collected);
 }
 
 void level_manager_shutdown() {
@@ -204,7 +223,7 @@ void level_manager_render_hud() {
   level_render_hud(s_manager.current_level);
 
   UITextAnimation anim_type = s_manager.can_show_hud ? UI_TEXT_ANIMATION_FADE_IN : UI_TEXT_ANIMATION_FADE_OUT;
-  for(nikola::sizei i = 0; i < 3; i++) {
+  for(nikola::sizei i = 0; i < GROUP_TEXTS_MAX; i++) {
     ui_text_render_animation(s_manager.texts[i], anim_type, 5.0f);
   }
 

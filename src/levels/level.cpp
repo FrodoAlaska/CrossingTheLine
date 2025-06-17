@@ -26,47 +26,6 @@ enum LerpPointType {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// Private functions
-
-static void init_resources(Level* lvl) {
-  // Resource group init
-  nikola::FilePath res_path = nikola::filepath_append(nikola::filesystem_current_path(), "res");
-  lvl->resource_group       = nikola::resources_create_group("level_res", res_path);
-
-  // Textures init
-  nikola::resources_push_dir(lvl->resource_group, "textures");
-
-  // Skybox init
-  lvl->frame.skybox_id = nikola::resources_push_skybox(lvl->resource_group, "cubemaps/dreamy_sky.nbrcubemap");
-
-  // Meshes init
-  lvl->resources[LEVEL_RESOURCE_CUBE] = nikola::resources_push_mesh(lvl->resource_group, nikola::GEOMETRY_CUBE);
-
-  // Materials init
-  
-  lvl->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT] = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "paviment"));
-  lvl->resources[LEVEL_RESOURCE_MATERIAL_ROAD]     = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "road"));
-
-  // Font init 
-  lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold");
-
-  // Models init
-
-  lvl->resources[LEVEL_RESOURCE_CAR]    = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_TRUCK]  = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_COIN]   = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
-}
-
-static void lerp_camera(Level* lvl) {
-  nikola::Camera* camera  = &lvl->main_camera;
-
-  camera->position = nikola::vec3_lerp(camera->position, lvl->current_lerp_point, nikola::niclock_get_delta_time() * 1.5f);
-}
-
-/// Private functions
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// Callbacks
 
 static bool mouse_scroll_event(const nikola::Event& event, const void* dispatcher, const void* listener) {
@@ -140,7 +99,67 @@ static bool level_event_callback(const GameEventType type, void* dispatcher, voi
   }
 }
 
+static void on_pause_layout(UILayout& layout, UIText& text, void* user_data) {
+  Level* lvl = (Level*)user_data;
+
+  if(layout.current_option == 0) {
+    lvl->is_paused = false;
+    nikola::physics_world_set_paused(false);
+  }
+}
+
 /// Callbacks
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Private functions
+
+static void init_resources(Level* lvl) {
+  // Resource group init
+  nikola::FilePath res_path = nikola::filepath_append(nikola::filesystem_current_path(), "res");
+  lvl->resource_group       = nikola::resources_create_group("level_res", res_path);
+
+  // Textures init
+  nikola::resources_push_dir(lvl->resource_group, "textures");
+
+  // Skybox init
+  lvl->frame.skybox_id = nikola::resources_push_skybox(lvl->resource_group, "cubemaps/dreamy_sky.nbrcubemap");
+
+  // Meshes init
+  lvl->resources[LEVEL_RESOURCE_CUBE] = nikola::resources_push_mesh(lvl->resource_group, nikola::GEOMETRY_CUBE);
+
+  // Materials init
+  
+  lvl->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT] = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "paviment"));
+  lvl->resources[LEVEL_RESOURCE_MATERIAL_ROAD]     = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "road"));
+
+  // Font init 
+  lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold");
+
+  // Models init
+
+  lvl->resources[LEVEL_RESOURCE_CAR]    = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_TRUCK]  = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_COIN]   = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
+}
+
+static void lerp_camera(Level* lvl) {
+  nikola::Camera* camera = &lvl->main_camera;
+  camera->position       = nikola::vec3_lerp(camera->position, lvl->current_lerp_point, nikola::niclock_get_delta_time() * 1.5f);
+}
+
+static void init_ui(Level* lvl) {
+  // Layout init
+  ui_layout_create(&lvl->pause_layout, lvl->window_ref, lvl->resources[LEVEL_RESOURCE_FONT], on_pause_layout, lvl);
+
+  // Texts init
+
+  ui_layout_begin(lvl->pause_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
+  ui_layout_push_text(lvl->pause_layout, "Resume", 40.0f, nikola::Vec4(1.0f));
+  ui_layout_end(lvl->pause_layout);
+}
+
+/// Private functions
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -202,6 +221,9 @@ Level* level_create(nikola::Window* window) {
   lvl->frame.dir_light.direction = nikola::Vec3(-1.0f);
   lvl->frame.dir_light.color     = nikola::Vec3(0.7f);
   lvl->frame.ambient             = nikola::Vec3(0.5f);
+
+  // UI init
+  init_ui(lvl);
 
   // Listen to events
 
@@ -273,16 +295,17 @@ void level_update(Level* lvl) {
     lvl->debug_mode       = lvl->has_editor;
     lvl->current_camera   = lvl->has_editor ? &lvl->gui_camera : &lvl->main_camera;
 
-    nikola::physics_world_set_paused(lvl->has_editor);
     nikola::input_cursor_show(lvl->has_editor);
   }
 
   // Toggle pause mode
   if(nikola::input_key_pressed(nikola::KEY_P)) {
     lvl->is_paused = !lvl->is_paused;
+    nikola::physics_world_set_paused(lvl->is_paused);
   }
  
   if(lvl->is_paused) {
+    ui_layout_update(lvl->pause_layout);
     return;
   }
 
@@ -316,7 +339,11 @@ void level_render(Level* lvl) {
 }
 
 void level_render_hud(Level* lvl) {
-  // @TODO
+  if(!lvl->is_paused) {
+    return;
+  }
+
+  ui_layout_render_animation(lvl->pause_layout, UI_TEXT_ANIMATION_BLINK, 5.0f);
 }
 
 void level_render_gui(Level* lvl) { 
@@ -371,9 +398,12 @@ void level_render_gui(Level* lvl) {
     ImGui::Checkbox("Debug Mode", &lvl->debug_mode);
    
     // Paused mode
+   
+    static bool is_paused = false; 
+
     ImGui::SameLine();
-    if(ImGui::Checkbox("Paused", &lvl->is_paused)) {
-      nikola::physics_world_set_paused(lvl->is_paused);
+    if(ImGui::Checkbox("Paused", &is_paused)) {
+      nikola::physics_world_set_paused(is_paused);
     }
 
     // Save the level
