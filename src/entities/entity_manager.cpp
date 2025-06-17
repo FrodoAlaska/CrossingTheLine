@@ -26,20 +26,18 @@ static EntityManager s_entt;
 static void resolve_player_collisions(Entity* player, Entity* other) {
   Level* lvl = player->level_ref;
 
-  // Vehicle
-  if(other->type == ENTITY_VEHICLE) {
-    player->is_active = false;
-    nikola::physics_body_set_awake(player->body, false);
-    
-    game_event_dispatch(GAME_EVENT_LEVEL_LOST);
-  }
-  // Coin 
-  else if(other->type == ENTITY_COIN) {
-    // Eat the coin
-    other->is_active = false; 
-    nikola::physics_body_set_awake(other->body, false);
-    
-    game_event_dispatch(GAME_EVENT_COIN_COLLECTED);
+  switch(other->type) {
+    case ENTITY_VEHICLE:
+      player_set_active(*player, false);
+      game_event_dispatch(GAME_EVENT_LEVEL_LOST);
+      break;
+    case ENTITY_COIN:
+      other->is_active = false; 
+      nikola::physics_body_set_awake(other->body, false);
+      game_event_dispatch(GAME_EVENT_COIN_COLLECTED);
+      break;
+    default: 
+      break;
   }
 }
 
@@ -137,7 +135,7 @@ void entity_manager_load() {
                   nklvl->coin_position,
                   nikola::Vec3(1.4f, 0.5f, 4.0f),
                   ENTITY_COIN, 
-                  nikola::PHYSICS_BODY_DYNAMIC, 
+                  nikola::PHYSICS_BODY_KINEMATIC, 
                   true);
 
     nikola::collider_set_local_position(s_entt.coin.collider, nikola::Vec3(0.0f, 0.0f, 1.6f));
@@ -185,8 +183,10 @@ void entity_manager_save() {
 
   // Save the coin 
 
-  nklvl->coin_position = nikola::physics_body_get_position(s_entt.coin.body); 
-  nklvl->has_coin      = s_entt.coin.is_active;
+  nklvl->has_coin = s_entt.coin.is_active;
+  if(nklvl->has_coin) {
+    nklvl->coin_position = nikola::physics_body_get_position(s_entt.coin.body); 
+  }
 
   // Save the end points
 
@@ -225,27 +225,28 @@ void entity_manager_reset() {
 }
 
 void entity_manager_update() {
-  // AABB collision tests
- 
+  // AABB tests
+
   // Points test
-  
   for(auto& point : s_entt.points) {
     if(!entity_aabb_test(s_entt.player, point)) {
       continue;
     }
-    
-    s_entt.player.is_active = false;
-    nikola::physics_body_set_awake(s_entt.player.body, false);
 
     switch(point.type) {
-      case ENTITY_END_POINT: 
+      case ENTITY_END_POINT:
+        player_set_active(s_entt.player, false);
         game_event_dispatch(GAME_EVENT_LEVEL_WON);
         break;
       case ENTITY_VEHICLE_POINT: 
+      case ENTITY_DEATH_POINT: 
+        player_set_active(s_entt.player, false);
         game_event_dispatch(GAME_EVENT_LEVEL_LOST);
         break;
-      case ENTITY_DEATH_POINT: 
-        game_event_dispatch(GAME_EVENT_LEVEL_LOST);
+      case ENTITY_CHAPTER_POINT: 
+        game_event_dispatch(GAME_EVENT_CHAPTER_CHANGED);
+        break;
+      default: 
         break;
     }
   }
@@ -299,7 +300,9 @@ void entity_manager_render() {
     }
 
     // Coin 
-    nikola::renderer_debug_collider(s_entt.coin.collider); 
+    if(s_entt.coin.is_active) {
+      nikola::renderer_debug_collider(s_entt.coin.collider); 
+    } 
   }
 }
 
@@ -366,6 +369,9 @@ void entity_manager_render_gui() {
         else if(ImGui::Selectable("Death point")) {
           entity->type = ENTITY_DEATH_POINT;
         }
+        else if(ImGui::Selectable("Chapter point")) {
+          entity->type = ENTITY_CHAPTER_POINT;
+        }
 
         ImGui::EndCombo();
       }
@@ -390,8 +396,8 @@ void entity_manager_render_gui() {
 
     // Type 
     static int current_point = 0; 
-    EntityType point_types[] = {ENTITY_END_POINT, ENTITY_VEHICLE_POINT, ENTITY_DEATH_POINT};
-    ImGui::Combo("Type", &current_point, "End point\0Vehicle point\0Death point\0\0");
+    EntityType point_types[] = {ENTITY_END_POINT, ENTITY_VEHICLE_POINT, ENTITY_DEATH_POINT, ENTITY_CHAPTER_POINT};
+    ImGui::Combo("Type", &current_point, "End point\0Vehicle point\0Death point\0Chapter point\0\0");
 
     // Add an point
     if(ImGui::Button("Add point")) {

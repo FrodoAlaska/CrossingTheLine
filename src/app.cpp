@@ -6,13 +6,6 @@
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_stdlib.h>
-/// ----------------------------------------------------------------------
-/// Consts
-
-const nikola::sizei LEVELS_MAX = 4;
-
-/// Consts
-/// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// GameStateType
@@ -66,10 +59,6 @@ struct GameState {
 struct nikola::App {
   nikola::Window* window; 
 
-  nikola::FilePath level_paths[LEVELS_MAX];
-  int current_level = 0; 
-  Level* level      = nullptr;
-
   GameStateType current_state = GAME_STATE_MENU;
   GameState game_states[GAME_STATES_MAX];
 };
@@ -84,7 +73,7 @@ static void on_menu_layout_click_func(UILayout& layout, UIText& text, void* user
 
   switch(layout.current_option) {
     case MENU_OPTION_START:
-      level_reset(app->level);
+      level_manager_reset();
       app->current_state = GAME_STATE_LEVEL;
       break;
     case MENU_OPTION_QUIT:
@@ -98,9 +87,7 @@ static void on_won_layout_click_func(UILayout& layout, UIText& text, void* user_
 
   switch(layout.current_option) {
     case WON_OPTION_CONTINUE:
-      level_unload(app->level);
-      level_load(app->level, app->level_paths[++app->current_level]);
-      level_reset(app->level);
+      level_manager_advance();
       app->current_state = GAME_STATE_LEVEL;
       break;
   }
@@ -111,7 +98,7 @@ static void on_lost_layout_click_func(UILayout& layout, UIText& text, void* user
 
   switch(layout.current_option) {
     case LOST_OPTION_RETRY:
-      level_reset(app->level);
+      level_manager_reset();
       app->current_state = GAME_STATE_LEVEL;
       break;
     case LOST_OPTION_QUIT:
@@ -144,22 +131,6 @@ static bool on_state_change(const GameEventType type, void* dispatcher, void* li
 static void init_resources(nikola::App* app) {
   // Font init
   nikola::resources_push_font(nikola::RESOURCE_CACHE_ID, "fonts/iosevka_bold.nbrfont");
-}
-
-static void init_levels(nikola::App* app) {
-  nikola::FilePath current_path = nikola::filesystem_current_path();
-
-  // Level names init
-  
-  app->level_paths[0] = nikola::filepath_append(current_path, "levels/level_1.nklvl");
-  app->level_paths[1] = nikola::filepath_append(current_path, "levels/level_2.nklvl");
-  app->level_paths[2] = nikola::filepath_append(current_path, "levels/level_3.nklvl");;
-  app->level_paths[3] = nikola::filepath_append(current_path, "levels/level_4.nklvl");;
-
-  // Current level init
-  
-  app->level = level_create(app->window);
-  level_load(app->level, app->level_paths[app->current_level]);
 }
 
 static void init_game_states(nikola::App* app) {
@@ -236,12 +207,12 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   // Resources init
   init_resources(app);
 
-  // Levels init
-  init_levels(app);
-
   // @TODO: This might be useless, but it's just for testing purposes
   nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
   // nikola::physics_world_set_iterations_count(5);
+
+  // Levels init
+  level_manager_init(window);
 
   // Listen to events
   game_event_listen(GAME_EVENT_LEVEL_WON, on_state_change, app);
@@ -254,7 +225,7 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
 }
 
 void app_shutdown(nikola::App* app) {
-  level_destroy(app->level);
+  level_manager_shutdown();
   nikola::gui_shutdown();
 
   delete app;
@@ -270,47 +241,32 @@ void app_update(nikola::App* app, const nikola::f64 delta_time) {
   // Update the current state
   ui_layout_update(app->game_states[app->current_state].layout);
 
-  // Update the current level
-  level_update(app->level);
+  // Update levels
+  level_manager_update();
 }
 
 void app_render(nikola::App* app) {
-  nikola::renderer_begin(app->level->frame);
-  level_render(app->level);
+  nikola::renderer_begin(level_manager_get_current_level()->frame);
+  level_manager_render();
   nikola::renderer_end();
   
   nikola::batch_renderer_begin();
   
-  // Render the current state's layout
+  // Render HUDs
   
   ui_text_render_animation(app->game_states[app->current_state].title, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
   ui_layout_render_animation(app->game_states[app->current_state].layout, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
+
+  level_manager_render_hud();
 
   nikola::batch_renderer_end();
 }
 
 void app_render_gui(nikola::App* app) {
-  if(!app->level->has_editor) {
-    return;
-  }
- 
   nikola::gui_begin();
- 
-  // Debug GUI (not gonna stay here for long)
-  nikola::gui_debug_info();
   
   // Level GUI
-  level_render_gui(app->level);  
-
-  // Level select
-  nikola::gui_begin_panel("Level select"); 
- 
-  if(ImGui::Combo("Select level", &app->current_level, "Level 1\0Level 2\0Level 3\0Level 4\0\0")) {
-    level_unload(app->level);
-    level_load(app->level, app->level_paths[app->current_level]);
-  }
-
-  nikola::gui_end_panel(); 
+  level_manager_render_gui();  
 
   nikola::gui_end();
 }

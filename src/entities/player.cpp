@@ -20,21 +20,6 @@ static bool s_player_can_move = true;
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// Callbacks
-
-static void on_raycast_hit(const nikola::Ray& ray, const nikola::RayIntersection& info, const nikola::Collider* coll) {
-  Entity* entity = (Entity*)nikola::physics_body_get_user_data(nikola::collider_get_attached_body(coll));
-  if(!info.has_intersected) {
-    return;
-  }
-  
-  s_player_can_move = (entity->type == ENTITY_TILE);
-}
-
-/// Callbacks
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// Player functions
 
 void player_create(Entity* player, Level* lvl, const nikola::Vec3& start_pos) {
@@ -53,13 +38,6 @@ void player_update(Entity& player) {
   if(!player.is_active) {
     return;
   }
-
-  // Raycast hit
-  nikola::Ray ray = {
-    .position  = nikola::physics_body_get_position(player.body),
-    .direction = nikola::Vec3(0.0f, -1.0f, 0.0f),
-  };
-  nikola::physics_world_check_raycast(ray, on_raycast_hit);
 
   // Movement
 
@@ -84,14 +62,11 @@ void player_update(Entity& player) {
   }
   
   nikola::physics_body_set_linear_velocity(player.body, velocity);
+}
 
-  // Clamp the position 
- 
-  nikola::Vec3 min_pos = nikola::Vec3(-27.35f, 0.350f, -27.0f);
-  nikola::Vec3 max_pos = nikola::Vec3(43.3f, 0.350f, 43.6f);
-
-  nikola::Vec3 clamped_position = nikola::vec3_clamp(nikola::physics_body_get_position(player.body), min_pos, max_pos);
-  nikola::physics_body_set_position(player.body, clamped_position);
+void player_set_active(Entity& player, const bool active) {
+  player.is_active = active;
+  nikola::physics_body_set_awake(player.body, active);
 }
 
 /// Player functions

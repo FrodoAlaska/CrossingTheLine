@@ -54,8 +54,8 @@ struct NKLevelFile {
 
   // Coin
 
-  nikola::Vec3 coin_position; 
-  bool has_coin = false;
+  nikola::Vec3 coin_position = nikola::Vec3(-1000.0f); 
+  bool has_coin              = false;
 
   // End points
   
@@ -160,4 +160,28 @@ void level_render_hud(Level* lvl);
 void level_render_gui(Level* lvl);
 
 /// Level functions
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Level manager functions
+
+void level_manager_init(nikola::Window* window);
+
+void level_manager_shutdown();
+
+void level_manager_advance();
+
+void level_manager_reset();
+
+void level_manager_update(); 
+
+void level_manager_render();
+
+void level_manager_render_hud();
+
+void level_manager_render_gui();
+
+Level* level_manager_get_current_level();
+
+/// Level manager functions
 /// ----------------------------------------------------------------------

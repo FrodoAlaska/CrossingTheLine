@@ -6,8 +6,9 @@ enum GameEventType {
   GAME_EVENT_LEVEL_WON,
   GAME_EVENT_LEVEL_LOST,
   GAME_EVENT_COIN_COLLECTED,
+  GAME_EVENT_CHAPTER_CHANGED,
 
-  GAME_EVENTS_MAX = GAME_EVENT_COIN_COLLECTED + 1,
+  GAME_EVENTS_MAX = GAME_EVENT_CHAPTER_CHANGED + 1,
 };
 /// GameEventType
 /// ----------------------------------------------------------------------

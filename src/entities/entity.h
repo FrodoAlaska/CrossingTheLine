@@ -6,7 +6,6 @@
 
 // Much needed forward declarations
 struct Level;
-struct Entity;
 
 /// ----------------------------------------------------------------------
 
@@ -28,8 +27,9 @@ enum EntityType {
   ENTITY_END_POINT     = 0x80,
   ENTITY_DEATH_POINT   = 0x100,
   ENTITY_VEHICLE_POINT = 0x120,
+  ENTITY_CHAPTER_POINT = 0x140,
   
-  ENTITY_COIN        = 0x140,
+  ENTITY_COIN        = 0x160,
 };
 /// EntityType 
 /// ----------------------------------------------------------------------
@@ -112,6 +112,8 @@ const bool entity_aabb_test(Entity& entity, Entity& other);
 void player_create(Entity* player, Level* lvl, const nikola::Vec3& position);
 
 void player_update(Entity& player); 
+
+void player_set_active(Entity& player, const bool active);
 
 /// Player functions
 /// ----------------------------------------------------------------------
