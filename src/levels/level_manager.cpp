@@ -9,7 +9,7 @@
 /// ----------------------------------------------------------------------
 /// Consts
 
-const nikola::sizei LEVEL_GROUPS_MAX = 5;
+const nikola::sizei LEVEL_GROUPS_MAX = 4;
 
 /// Consts
 /// ----------------------------------------------------------------------
@@ -42,6 +42,55 @@ static LevelManager s_manager{};
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// Private functions
+
+static void init_group_ui(nikola::Window* window) {
+  // Group names init
+
+  s_manager.groups[0].name = "Hub"; 
+  s_manager.groups[1].name = "Chapter 1"; 
+  s_manager.groups[2].name = "Chapter 2"; 
+  s_manager.groups[3].name = "Chapter 3"; 
+
+  // UI init
+
+  UITextDesc text_desc = {
+    .string = "GROUP NAME",
+
+    .font_id   = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"),
+    .font_size = 30.0f,
+
+    .anchor = UI_ANCHOR_TOP_CENTER, 
+    .color  = nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f),
+  };
+  ui_text_create(&s_manager.texts[0], window, text_desc);
+
+  text_desc.string = "LEVELS COUNT";
+  text_desc.offset = nikola::Vec2(0.0f, 30.0f);
+  ui_text_create(&s_manager.texts[1], window, text_desc);
+  
+  text_desc.string = "KEYS COLLECTED COUNT";
+  text_desc.offset = nikola::Vec2(0.0f, 60.0f);
+  ui_text_create(&s_manager.texts[2], window, text_desc);
+}
+
+static nikola::sizei get_index_from_pos(Entity* point) {
+  int pos_z = (int)nikola::physics_body_get_position(point->body).z;
+
+  switch(pos_z) {
+    case -8:
+      return 1;
+    case 8:
+      return 3;
+    case 24:
+      return 2;
+  }
+}
+
+/// Private functions
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// Callbacks
 
 static bool on_chapter_changed(const GameEventType type, void* dispatcher, void* listener) {
@@ -49,7 +98,8 @@ static bool on_chapter_changed(const GameEventType type, void* dispatcher, void*
     return false;
   }
   
-  LevelGroup* group = &s_manager.groups[s_manager.current_group];
+  Entity* point_entt = (Entity*)dispatcher;
+  LevelGroup* group  = &s_manager.groups[get_index_from_pos(point_entt)];
 
   // Set up the UI
   ui_text_set_string(s_manager.texts[0], group->name);
@@ -57,7 +107,7 @@ static bool on_chapter_changed(const GameEventType type, void* dispatcher, void*
   nikola::String levels_count = (std::to_string(group->current_level) + '/' + std::to_string(group->level_paths.size()));
   ui_text_set_string(s_manager.texts[1], levels_count);
  
-  nikola::String keys_left = "Keys: 0/5";
+  nikola::String keys_left = ("Keys: 0/" + std::to_string(group->level_paths.size()));
   ui_text_set_string(s_manager.texts[2], keys_left);
 
   // Enable the hud for the specific group
@@ -66,6 +116,7 @@ static bool on_chapter_changed(const GameEventType type, void* dispatcher, void*
   if(nikola::input_key_pressed(nikola::KEY_ENTER)) {
     level_unload(s_manager.current_level);
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
+    level_reset(s_manager.current_level);
   }
 
   return true;
@@ -92,42 +143,6 @@ static void level_directory_iterate_func(const nikola::FilePath& base_dir, const
 /// Callbacks
 /// ----------------------------------------------------------------------
 
-/// ----------------------------------------------------------------------
-/// Private functions
-
-static void init_group_ui(nikola::Window* window) {
-  // Group names init
-
-  s_manager.groups[0].name = "Hub"; 
-  s_manager.groups[1].name = "First Road"; 
-  s_manager.groups[2].name = "Big As A Truck, Yet Small Like A Fly"; 
-  s_manager.groups[3].name = "A Road Block Ahead"; 
-  s_manager.groups[4].name = "When Push Comes To Shove..."; 
-
-  // UI init
-
-  UITextDesc text_desc = {
-    .string = "GROUP NAME",
-
-    .font_id   = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"),
-    .font_size = 30.0f,
-
-    .anchor = UI_ANCHOR_TOP_CENTER, 
-    .color  = nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f),
-  };
-  ui_text_create(&s_manager.texts[0], window, text_desc);
-
-  text_desc.string = "LEVELS COUNT";
-  text_desc.offset = nikola::Vec2(0.0f, 30.0f);
-  ui_text_create(&s_manager.texts[1], window, text_desc);
-  
-  text_desc.string = "KEYS COLLECTED COUNT";
-  text_desc.offset = nikola::Vec2(0.0f, 60.0f);
-  ui_text_create(&s_manager.texts[2], window, text_desc);
-}
-
-/// Private functions
-/// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// Level manager functions
@@ -169,6 +184,8 @@ void level_manager_advance() {
   else {
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
   }
+
+  level_reset(s_manager.current_level);
 }
 
 void level_manager_reset() {
@@ -188,7 +205,7 @@ void level_manager_render_hud() {
 
   UITextAnimation anim_type = s_manager.can_show_hud ? UI_TEXT_ANIMATION_FADE_IN : UI_TEXT_ANIMATION_FADE_OUT;
   for(nikola::sizei i = 0; i < 3; i++) {
-    ui_text_render_animation(s_manager.texts[i], anim_type, 10.0f);
+    ui_text_render_animation(s_manager.texts[i], anim_type, 5.0f);
   }
 
   s_manager.can_show_hud = false;

@@ -105,7 +105,9 @@ void entity_manager_destroy() {
   nikola::physics_body_destroy(s_entt.player.body);
 
   // Coin destroy 
-  nikola::physics_body_destroy(s_entt.coin.body);
+  if(s_entt.coin.is_active) {
+    nikola::physics_body_destroy(s_entt.coin.body);
+  } 
 
   // End points destroy
   for(auto& point : s_entt.points) {
@@ -135,7 +137,7 @@ void entity_manager_load() {
                   nklvl->coin_position,
                   nikola::Vec3(1.4f, 0.5f, 4.0f),
                   ENTITY_COIN, 
-                  nikola::PHYSICS_BODY_KINEMATIC, 
+                  nikola::PHYSICS_BODY_DYNAMIC, 
                   true);
 
     nikola::collider_set_local_position(s_entt.coin.collider, nikola::Vec3(0.0f, 0.0f, 1.6f));
@@ -244,7 +246,7 @@ void entity_manager_update() {
         game_event_dispatch(GAME_EVENT_LEVEL_LOST);
         break;
       case ENTITY_CHAPTER_POINT: 
-        game_event_dispatch(GAME_EVENT_CHAPTER_CHANGED);
+        game_event_dispatch(GAME_EVENT_CHAPTER_CHANGED, &point);
         break;
       default: 
         break;

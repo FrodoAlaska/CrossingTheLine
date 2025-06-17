@@ -213,6 +213,8 @@ Level* level_create(nikola::Window* window) {
 }
 
 bool level_load(Level* lvl, const nikola::FilePath& path) {
+  NIKOLA_ASSERT(lvl, "Invalid level given to level_load");
+  
   nikola::PerfTimer timer; 
   NIKOLA_PERF_TIMER_BEGIN(timer);
 
@@ -220,6 +222,9 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
   if(!nklvl_file_load(&lvl->nkbin, path)) {
     return false;
   }
+
+  // Reset the camera
+  lvl->main_camera.position = lvl->lerp_points[LERP_POINT_DEFAULT];
 
   // Load entities
   entity_manager_load();
@@ -232,18 +237,14 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
 }
 
 void level_destroy(Level* lvl) {
-  if(!lvl) {
-    return;
-  }
+  NIKOLA_ASSERT(lvl, "Invalid level given to level_destroy");
 
   nikola::resources_destroy_group(lvl->resource_group);
   delete lvl;
 }
 
 void level_unload(Level* lvl) {
-  if(!lvl) {
-    return;
-  }
+  NIKOLA_ASSERT(lvl, "Invalid level given to level_unload");
  
   // Entities destroy
   entity_manager_destroy(); 
@@ -271,7 +272,6 @@ void level_update(Level* lvl) {
     lvl->has_editor       = !lvl->has_editor;
     lvl->debug_mode       = lvl->has_editor;
     lvl->current_camera   = lvl->has_editor ? &lvl->gui_camera : &lvl->main_camera;
-    lvl->is_paused        = lvl->has_editor; 
 
     nikola::physics_world_set_paused(lvl->has_editor);
     nikola::input_cursor_show(lvl->has_editor);
