@@ -1,5 +1,6 @@
 #include "entity.h"
 #include "levels/level.h"
+#include "sound_manager.h"
 
 #include <nikola/nikola.h>
 

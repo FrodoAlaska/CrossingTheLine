@@ -1,6 +1,7 @@
 #include "level.h"
 #include "game_event.h"
 #include "ui/ui.h"
+#include "sound_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -100,8 +101,8 @@ static nikola::sizei get_index_from_pos(Entity* point) {
 /// ----------------------------------------------------------------------
 /// Callbacks
 
-static bool on_chapter_changed(const GameEventType type, void* dispatcher, void* listener) {
-  if(type != GAME_EVENT_CHAPTER_CHANGED) {
+static bool on_chapter_changed(const GameEvent& event, void* dispatcher, void* listener) {
+  if(event.type != GAME_EVENT_CHAPTER_CHANGED) {
     return false;
   }
   
@@ -124,13 +125,18 @@ static bool on_chapter_changed(const GameEventType type, void* dispatcher, void*
     level_unload(s_manager.current_level);
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
     level_reset(s_manager.current_level);
+     
+    game_event_dispatch(GameEvent {
+      .type       = GAME_EVENT_SOUND_PLAYED, 
+      .sound_type = SOUND_UI_TRANSITION, 
+    });
   }
 
   return true;
 }
 
-static bool on_coin_collected(const GameEventType type, void* dispatcher, void* listener) {
-  if(type != GAME_EVENT_COIN_COLLECTED) {
+static bool on_coin_collected(const GameEvent& event, void* dispatcher, void* listener) {
+  if(event.type != GAME_EVENT_COIN_COLLECTED) {
     return false;
   }
   
@@ -175,9 +181,12 @@ void level_manager_init(nikola::Window* window) {
   
   // Load the hub level's content
   level_load(s_manager.current_level, s_manager.groups[0].level_paths[0]);
-
+ 
   // Init UI
   init_group_ui(window);
+
+  // Sounds init
+  sound_manager_init(s_manager.current_level);
 
   // Listen to events
   game_event_listen(GAME_EVENT_CHAPTER_CHANGED, on_chapter_changed);
@@ -185,6 +194,8 @@ void level_manager_init(nikola::Window* window) {
 }
 
 void level_manager_shutdown() {
+  sound_manager_shutdown();
+  
   level_unload(s_manager.current_level);
   level_destroy(s_manager.current_level);
 }
@@ -203,7 +214,7 @@ void level_manager_advance() {
   else {
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
   }
-
+    
   level_reset(s_manager.current_level);
 }
 

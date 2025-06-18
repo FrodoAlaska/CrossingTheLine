@@ -48,6 +48,7 @@ set(PROJECT_SOURCES
   ${PROJECT_SRC_DIR}/app.cpp
   ${PROJECT_SRC_DIR}/main.cpp
   ${PROJECT_SRC_DIR}/game_event.cpp
+  ${PROJECT_SRC_DIR}/sound_manager.cpp
 
   # Entities
   ${PROJECT_SRC_DIR}/entities/entity.cpp

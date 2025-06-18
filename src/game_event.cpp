@@ -33,10 +33,10 @@ void game_event_listen(const GameEventType type, const OnGameEventFireFunc& func
   entry->listener = (void*)listener;
 }
 
-const bool game_event_dispatch(const GameEventType type, const void* dispatcher) {
-  for(nikola::sizei i = 0; i < s_pool.events[type].size(); i++) {
-    GameEventEntry* entry = &s_pool.events[type][i];
-    if(!entry->func(type, (void*)dispatcher, entry->listener)) {
+const bool game_event_dispatch(const GameEvent& event, const void* dispatcher) {
+  for(nikola::sizei i = 0; i < s_pool.events[event.type].size(); i++) {
+    GameEventEntry* entry = &s_pool.events[event.type][i];
+    if(!entry->func(event, (void*)dispatcher, entry->listener)) {
       return false;
     }
   }

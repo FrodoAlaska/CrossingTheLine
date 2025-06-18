@@ -1,5 +1,7 @@
 #include "entity.h"
 #include "levels/level.h"
+#include "sound_manager.h"
+#include "game_event.h"
 
 #include <nikola/nikola.h>
 

@@ -2,6 +2,8 @@
 #include "levels/level.h"
 #include "ui/ui.h"
 #include "game_event.h"
+#include "fog_shader.h"
+#include "sound_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -75,6 +77,11 @@ static void on_menu_layout_click_func(UILayout& layout, UIText& text, void* user
     case MENU_OPTION_START:
       level_manager_reset();
       app->current_state = GAME_STATE_LEVEL;
+
+      game_event_dispatch(GameEvent {
+        .type       = GAME_EVENT_SOUND_PLAYED, 
+        .sound_type = SOUND_UI_TRANSITION, 
+      });
       break;
     case MENU_OPTION_QUIT:
       nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
@@ -89,6 +96,11 @@ static void on_won_layout_click_func(UILayout& layout, UIText& text, void* user_
     case WON_OPTION_CONTINUE:
       level_manager_advance();
       app->current_state = GAME_STATE_LEVEL;
+      
+      game_event_dispatch(GameEvent {
+        .type       = GAME_EVENT_SOUND_PLAYED, 
+        .sound_type = SOUND_UI_TRANSITION, 
+      });
       break;
   }
 }
@@ -107,10 +119,10 @@ static void on_lost_layout_click_func(UILayout& layout, UIText& text, void* user
   }
 }
 
-static bool on_state_change(const GameEventType type, void* dispatcher, void* listener) {
+static bool on_state_change(const GameEvent& event, void* dispatcher, void* listener) {
   nikola::App* app = (nikola::App*)listener;
 
-  switch(type) {
+  switch(event.type) {
     case GAME_EVENT_LEVEL_WON:
       app->current_state = GAME_STATE_WON;
       return true;
@@ -131,6 +143,10 @@ static bool on_state_change(const GameEventType type, void* dispatcher, void* li
 static void init_resources(nikola::App* app) {
   // Font init
   nikola::resources_push_font(nikola::RESOURCE_CACHE_ID, "fonts/iosevka_bold.nbrfont");
+
+  // Shader contexts init
+  nikola::ResourceID fog_shader_id = nikola::resources_push_shader(nikola::RESOURCE_CACHE_ID, get_fog_shader());
+  nikola::resources_push_shader_context(nikola::RESOURCE_CACHE_ID, fog_shader_id);
 }
 
 static void init_game_states(nikola::App* app) {

@@ -29,12 +29,12 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
   switch(other->type) {
     case ENTITY_VEHICLE:
       player_set_active(*player, false);
-      game_event_dispatch(GAME_EVENT_LEVEL_LOST);
+      game_event_dispatch(GameEvent{.type = GAME_EVENT_LEVEL_LOST});
       break;
     case ENTITY_COIN:
       other->is_active = false; 
       nikola::physics_body_set_awake(other->body, false);
-      game_event_dispatch(GAME_EVENT_COIN_COLLECTED);
+      game_event_dispatch(GameEvent{.type = GAME_EVENT_COIN_COLLECTED});
       break;
     default: 
       break;
@@ -238,15 +238,15 @@ void entity_manager_update() {
     switch(point.type) {
       case ENTITY_END_POINT:
         player_set_active(s_entt.player, false);
-        game_event_dispatch(GAME_EVENT_LEVEL_WON);
+        game_event_dispatch(GameEvent{.type = GAME_EVENT_LEVEL_WON});
         break;
       case ENTITY_VEHICLE_POINT: 
       case ENTITY_DEATH_POINT: 
         player_set_active(s_entt.player, false);
-        game_event_dispatch(GAME_EVENT_LEVEL_LOST);
+        game_event_dispatch(GameEvent{.type = GAME_EVENT_LEVEL_LOST});
         break;
       case ENTITY_CHAPTER_POINT: 
-        game_event_dispatch(GAME_EVENT_CHAPTER_CHANGED, &point);
+        game_event_dispatch(GameEvent{.type = GAME_EVENT_CHAPTER_CHANGED}, &point);
         break;
       default: 
         break;

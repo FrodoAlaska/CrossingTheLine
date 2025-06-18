@@ -1,5 +1,7 @@
 #include "level.h"
 #include "game_event.h"
+#include "fog_shader.h"
+#include "sound_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -81,22 +83,22 @@ static void editor_camera_func(nikola::Camera& camera) {
   }
 }
 
-static bool level_event_callback(const GameEventType type, void* dispatcher, void* listener) {
+static bool level_event_callback(const GameEvent& event, void* dispatcher, void* listener) {
   Level* lvl = (Level*)listener;
+  SoundType sound_type;
 
-  switch(type) {
+  switch(event.type) {
     case GAME_EVENT_LEVEL_WON:
       lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_WIN];
-      return true;
+      break;
     case GAME_EVENT_LEVEL_LOST:
       lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_LOSE];
-      return true;
-    case GAME_EVENT_COIN_COLLECTED:
-      lvl->has_coin = false;
-      return true;
+      break;
     default:
       return false;
   }
+  
+  return true;
 }
 
 static void on_pause_layout(UILayout& layout, UIText& text, void* user_data) {
@@ -133,14 +135,28 @@ static void init_resources(Level* lvl) {
   lvl->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT] = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "paviment"));
   lvl->resources[LEVEL_RESOURCE_MATERIAL_ROAD]     = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "road"));
 
-  // Font init 
-  lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold");
-
   // Models init
 
-  lvl->resources[LEVEL_RESOURCE_CAR]    = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_TRUCK]  = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_COIN]   = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_CAR]   = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_TRUCK] = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_COIN]  = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
+ 
+  // Sounds init
+  
+  nikola::resources_push_dir(lvl->resource_group, "audio");
+ 
+  lvl->resources[LEVEL_RESOURCE_SOUND_DEATH]       = nikola::resources_get_id(lvl->resource_group, "sfx_death");
+  lvl->resources[LEVEL_RESOURCE_SOUND_KEY_COLLECT] = nikola::resources_get_id(lvl->resource_group, "sfx_key_collect");
+  lvl->resources[LEVEL_RESOURCE_SOUND_WIN]         = nikola::resources_get_id(lvl->resource_group, "sfx_win");
+  
+  lvl->resources[LEVEL_RESOURCE_SOUND_UI_CLICK]      = nikola::resources_get_id(lvl->resource_group, "sfx_ui_click");
+  lvl->resources[LEVEL_RESOURCE_SOUND_UI_NAVIGATE]   = nikola::resources_get_id(lvl->resource_group, "sfx_ui_navigate");
+  lvl->resources[LEVEL_RESOURCE_SOUND_UI_TRANSITION] = nikola::resources_get_id(lvl->resource_group, "sfx_transition");
+  
+  lvl->resources[LEVEL_RESOURCE_MUSIC_AMBIANCE] = nikola::resources_get_id(lvl->resource_group, "music_ambiance");
+
+  // Font init 
+  lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold");
 }
 
 static void lerp_camera(Level* lvl) {
@@ -183,7 +199,7 @@ Level* level_create(nikola::Window* window) {
   // Main camera init
   nikola::CameraDesc cam_desc = {
     .position     = lvl->current_lerp_point,
-    .target       = nikola::Vec3(0.0f, 55.0f, -3.0f),
+    .target       = nikola::Vec3(0.0f, lvl->current_lerp_point.y, -3.0f),
     .up_axis      = nikola::Vec3(0.0f, 1.0f, 0.0f),
     .aspect_ratio = nikola::window_get_aspect_ratio(lvl->window_ref),
     .move_func    = nullptr,
@@ -229,7 +245,6 @@ Level* level_create(nikola::Window* window) {
 
   game_event_listen(GAME_EVENT_LEVEL_WON, level_event_callback, lvl);
   game_event_listen(GAME_EVENT_LEVEL_LOST, level_event_callback, lvl);
-  game_event_listen(GAME_EVENT_COIN_COLLECTED, level_event_callback, lvl);
 
   return lvl;
 }
@@ -253,7 +268,7 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
 
   // Load tiles
   tile_manager_load();
-  
+
   NIKOLA_PERF_TIMER_END(timer, (nikola::filepath_filename(path) + " loaded").c_str());
   return true;
 }
@@ -284,6 +299,12 @@ void level_reset(Level* lvl) {
 
   // Reset the entities
   entity_manager_reset();
+
+  // Play the ambiance
+  game_event_dispatch(GameEvent {
+    .type       = GAME_EVENT_SOUND_PLAYED, 
+    .sound_type = SOUND_AMBIANCE, 
+  });
 }
 
 void level_update(Level* lvl) {
@@ -295,6 +316,7 @@ void level_update(Level* lvl) {
     lvl->debug_mode       = lvl->has_editor;
     lvl->current_camera   = lvl->has_editor ? &lvl->gui_camera : &lvl->main_camera;
 
+    nikola::physics_world_set_paused(lvl->has_editor);
     nikola::input_cursor_show(lvl->has_editor);
   }
 
