@@ -89,6 +89,7 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
   
   switch(event.state_type) {
     case STATE_LEVEL:
+    case STATE_HUB:
       lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_START];
       break;
     case STATE_WON:
@@ -155,6 +156,7 @@ static void init_resources(Level* lvl) {
   lvl->resources[LEVEL_RESOURCE_SOUND_UI_TRANSITION] = nikola::resources_get_id(lvl->resource_group, "sfx_transition");
   
   lvl->resources[LEVEL_RESOURCE_MUSIC_AMBIANCE] = nikola::resources_get_id(lvl->resource_group, "music_ambiance");
+  lvl->resources[LEVEL_RESOURCE_MUSIC_HUB]      = nikola::resources_get_id(lvl->resource_group, "music_nocturne");
 
   // Font init 
   lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold");

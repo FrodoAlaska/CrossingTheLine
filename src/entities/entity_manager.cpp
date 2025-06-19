@@ -134,7 +134,8 @@ void entity_manager_load() {
   player_create(&s_entt.player, s_entt.level_ref, nklvl->start_position);
 
   // Coin init
-  
+ 
+  s_entt.coin.is_active = false;
   if(nklvl->has_coin) {
     entity_create(&s_entt.coin, 
                   s_entt.level_ref, 
@@ -231,7 +232,14 @@ void entity_manager_reset() {
 }
 
 void entity_manager_update() {
-  // AABB tests
+  // Player update
+  player_update(s_entt.player);
+  
+  // AABB tests (only if the player is active)
+  
+  if(!s_entt.player.is_active) {
+    return;
+  }
 
   // Points test
   for(auto& point : s_entt.points) {
@@ -262,9 +270,6 @@ void entity_manager_update() {
         break;
     }
   }
-
-  // Player update
-  player_update(s_entt.player);
 }
 
 void entity_manager_render() {

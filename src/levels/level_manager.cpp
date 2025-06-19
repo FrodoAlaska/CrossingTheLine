@@ -127,9 +127,9 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
     level_reset(s_manager.current_level);
      
-    game_event_dispatch(GameEvent {
-      .type       = GAME_EVENT_SOUND_PLAYED, 
-      .sound_type = SOUND_UI_TRANSITION, 
+    game_event_dispatch(GameEvent{
+      .type       = GAME_EVENT_STATE_CHANGED, 
+      .state_type = STATE_LEVEL
     });
   }
 }
@@ -186,7 +186,7 @@ void level_manager_init(nikola::Window* window) {
   
   // Load the hub level's content
   level_load(s_manager.current_level, s_manager.groups[0].level_paths[0]);
- 
+
   // Init UI
   init_group_ui(window);
 
@@ -216,9 +216,17 @@ void level_manager_advance() {
   group->current_level++; 
   if(group->current_level >= group->level_paths.size()) {
     level_load(s_manager.current_level, "levels/C0L0.nklvl");
+    game_event_dispatch(GameEvent{
+      .type       = GAME_EVENT_STATE_CHANGED, 
+      .state_type = STATE_HUB
+    });
   } 
   else {
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
+    game_event_dispatch(GameEvent {
+      .type       = GAME_EVENT_STATE_CHANGED, 
+      .state_type = STATE_LEVEL 
+    });
   }
 }
 

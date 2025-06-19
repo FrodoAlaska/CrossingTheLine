@@ -37,6 +37,14 @@ static void on_sound_play(const GameEvent& event, void* dispatcher, void* listen
 
 static void on_state_change(const GameEvent& event, void* dispatcher, void* listener) {
   switch(event.state_type) {
+    case STATE_HUB:
+      nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
+      nikola::audio_source_start(s_manager.entries[SOUND_HUB]);
+      break;
+    case STATE_LEVEL:
+      nikola::audio_source_stop(s_manager.entries[SOUND_HUB]);
+      nikola::audio_source_start(s_manager.entries[SOUND_AMBIANCE]);
+      break;
     case STATE_WON:
       nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
       nikola::audio_source_start(s_manager.entries[SOUND_WIN]);
@@ -44,9 +52,6 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
     case STATE_LOST:
       nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
       nikola::audio_source_start(s_manager.entries[SOUND_DEATH]);
-      break;
-    case STATE_LEVEL:
-      nikola::audio_source_start(s_manager.entries[SOUND_AMBIANCE]);
       break;
     default:
       break;

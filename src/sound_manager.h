@@ -17,8 +17,9 @@ enum SoundType {
   SOUND_UI_TRANSITION,
 
   SOUND_AMBIANCE,
+  SOUND_HUB,
 
-  SOUNDS_MAX = SOUND_AMBIANCE + 1,
+  SOUNDS_MAX = SOUND_HUB + 1,
 };
 /// SoundType
 /// ----------------------------------------------------------------------

@@ -58,7 +58,7 @@ static void on_menu_layout_click_func(UILayout& layout, UIText& text, void* user
     case MENU_OPTION_START:
       game_event_dispatch(GameEvent {
         .type       = GAME_EVENT_STATE_CHANGED, 
-        .state_type = STATE_LEVEL 
+        .state_type = STATE_HUB 
       });
       break;
     case MENU_OPTION_QUIT:
@@ -71,10 +71,6 @@ static void on_won_layout_click_func(UILayout& layout, UIText& text, void* user_
   switch(layout.current_option) {
     case WON_OPTION_CONTINUE:
       level_manager_advance();
-      game_event_dispatch(GameEvent {
-        .type       = GAME_EVENT_STATE_CHANGED, 
-        .state_type = STATE_LEVEL, 
-      });
       break;
   }
 }
@@ -84,7 +80,7 @@ static void on_lost_layout_click_func(UILayout& layout, UIText& text, void* user
     case LOST_OPTION_RETRY:
       game_event_dispatch(GameEvent {
         .type       = GAME_EVENT_STATE_CHANGED, 
-        .state_type = STATE_LEVEL, 
+        .state_type = STATE_LEVEL 
       });
       break;
     case LOST_OPTION_QUIT:

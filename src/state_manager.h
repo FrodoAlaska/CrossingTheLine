@@ -6,6 +6,7 @@
 /// StateType
 enum StateType {
   STATE_MENU = 0, 
+  STATE_HUB,
   STATE_LEVEL, 
   STATE_WON,
   STATE_LOST,
