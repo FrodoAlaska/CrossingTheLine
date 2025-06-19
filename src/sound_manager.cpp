@@ -2,6 +2,7 @@
 #include "levels/level.h"
 #include "entities/entity.h"
 #include "game_event.h"
+#include "state_manager.h"
 
 #include <nikola/nikola.h>
 
@@ -19,29 +20,39 @@ static SoundManager s_manager;
 /// ----------------------------------------------------------------------
 /// Callbacks
 
-static bool on_sound_play(const GameEvent& event, void* dispatcher, void* listener) {
+static void on_sound_play(const GameEvent& event, void* dispatcher, void* listener) {
   NIKOLA_ASSERT((event.sound_type >= 0 && event.sound_type <= SOUNDS_MAX), "Invalid SoundType given to event");
-
+  
   switch(event.type) {
     case GAME_EVENT_SOUND_PLAYED:
       nikola::audio_source_start(s_manager.entries[event.sound_type]);
-      return true;
-    case GAME_EVENT_LEVEL_WON:
-      nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
-      nikola::audio_source_start(s_manager.entries[SOUND_WIN]);
-      return true;
-    case GAME_EVENT_LEVEL_LOST:
-      nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
-      nikola::audio_source_start(s_manager.entries[SOUND_DEATH]);
-      return true;
+      break;
     case GAME_EVENT_COIN_COLLECTED:
       nikola::audio_source_start(s_manager.entries[SOUND_KEY_COLLECT]);
-      return true;
+      break;
     default:
-      return false;
+      break;
+  }
+}
+
+static void on_state_change(const GameEvent& event, void* dispatcher, void* listener) {
+  switch(event.state_type) {
+    case STATE_WON:
+      nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
+      nikola::audio_source_start(s_manager.entries[SOUND_WIN]);
+      break;
+    case STATE_LOST:
+      nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
+      nikola::audio_source_start(s_manager.entries[SOUND_DEATH]);
+      break;
+    case STATE_LEVEL:
+      nikola::audio_source_start(s_manager.entries[SOUND_AMBIANCE]);
+      break;
+    default:
+      break;
   }
 
-  return true;
+  nikola::audio_source_start(s_manager.entries[SOUND_UI_TRANSITION]);
 }
 
 /// Callbacks
@@ -70,9 +81,8 @@ void sound_manager_init(Level* lvl) {
 
   // Listen to events
   game_event_listen(GAME_EVENT_SOUND_PLAYED, on_sound_play);
-  game_event_listen(GAME_EVENT_LEVEL_WON, on_sound_play);
-  game_event_listen(GAME_EVENT_LEVEL_LOST, on_sound_play);
   game_event_listen(GAME_EVENT_COIN_COLLECTED, on_sound_play);
+  game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
 
   NIKOLA_LOG_TRACE("Initialized sound manager");
 }

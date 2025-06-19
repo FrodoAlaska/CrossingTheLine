@@ -2,6 +2,7 @@
 #include "game_event.h"
 #include "ui/ui.h"
 #include "sound_manager.h"
+#include "state_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -101,9 +102,9 @@ static nikola::sizei get_index_from_pos(Entity* point) {
 /// ----------------------------------------------------------------------
 /// Callbacks
 
-static bool on_chapter_changed(const GameEvent& event, void* dispatcher, void* listener) {
+static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* listener) {
   if(event.type != GAME_EVENT_CHAPTER_CHANGED) {
-    return false;
+    return;
   }
   
   Entity* point_entt = (Entity*)dispatcher;
@@ -131,19 +132,23 @@ static bool on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
       .sound_type = SOUND_UI_TRANSITION, 
     });
   }
-
-  return true;
 }
 
-static bool on_coin_collected(const GameEvent& event, void* dispatcher, void* listener) {
+static void on_coin_collected(const GameEvent& event, void* dispatcher, void* listener) {
   if(event.type != GAME_EVENT_COIN_COLLECTED) {
-    return false;
+    return;
   }
   
   LevelGroup* group = &s_manager.groups[s_manager.current_group];
   group->coins_collected++;
+}
 
-  return true;
+static void on_state_changed(const GameEvent& event, void* dispatcher, void* listener) {
+  if(event.state_type != STATE_LEVEL) {
+    return;
+  }
+  
+  level_reset(s_manager.current_level);
 }
 
 static void level_directory_iterate_func(const nikola::FilePath& base_dir, const nikola::FilePath& current_dir, void* user_data) {
@@ -191,6 +196,7 @@ void level_manager_init(nikola::Window* window) {
   // Listen to events
   game_event_listen(GAME_EVENT_CHAPTER_CHANGED, on_chapter_changed);
   game_event_listen(GAME_EVENT_COIN_COLLECTED, on_coin_collected);
+  game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed);
 }
 
 void level_manager_shutdown() {
@@ -214,8 +220,6 @@ void level_manager_advance() {
   else {
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
   }
-    
-  level_reset(s_manager.current_level);
 }
 
 void level_manager_reset() {

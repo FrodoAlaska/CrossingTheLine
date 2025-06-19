@@ -184,8 +184,6 @@ void level_manager_shutdown();
 
 void level_manager_advance();
 
-void level_manager_reset();
-
 void level_manager_update(); 
 
 void level_manager_render();

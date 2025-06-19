@@ -2,6 +2,7 @@
 #include "game_event.h"
 #include "fog_shader.h"
 #include "sound_manager.h"
+#include "state_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -83,22 +84,22 @@ static void editor_camera_func(nikola::Camera& camera) {
   }
 }
 
-static bool level_event_callback(const GameEvent& event, void* dispatcher, void* listener) {
+static void on_state_changed(const GameEvent& event, void* dispatcher, void* listener) {
   Level* lvl = (Level*)listener;
-  SoundType sound_type;
-
-  switch(event.type) {
-    case GAME_EVENT_LEVEL_WON:
+  
+  switch(event.state_type) {
+    case STATE_LEVEL:
+      lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_START];
+      break;
+    case STATE_WON:
       lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_WIN];
       break;
-    case GAME_EVENT_LEVEL_LOST:
+    case STATE_LOST:
       lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_LOSE];
       break;
     default:
-      return false;
+      break;
   }
-  
-  return true;
 }
 
 static void on_pause_layout(UILayout& layout, UIText& text, void* user_data) {
@@ -241,10 +242,8 @@ Level* level_create(nikola::Window* window) {
   // UI init
   init_ui(lvl);
 
-  // Listen to events
-
-  game_event_listen(GAME_EVENT_LEVEL_WON, level_event_callback, lvl);
-  game_event_listen(GAME_EVENT_LEVEL_LOST, level_event_callback, lvl);
+  // Listen to event
+  game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed, lvl);
 
   return lvl;
 }
@@ -293,18 +292,9 @@ void level_unload(Level* lvl) {
 void level_reset(Level* lvl) {
   // Reset variables
   lvl->is_paused = false; 
-  
-  // Reset camera
-  lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_START];
 
   // Reset the entities
   entity_manager_reset();
-
-  // Play the ambiance
-  game_event_dispatch(GameEvent {
-    .type       = GAME_EVENT_SOUND_PLAYED, 
-    .sound_type = SOUND_AMBIANCE, 
-  });
 }
 
 void level_update(Level* lvl) {
