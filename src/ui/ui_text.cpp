@@ -58,31 +58,28 @@ void ui_text_create(UIText* text, const nikola::Window* window_ref, const UIText
 const nikola::Vec2 ui_text_measure_size(const UIText& text) {
   nikola::Vec2 result(0.0f);
 
-  float font_scale   = text.font_size / 256.0f; // @TODO: This is an engine problem, but the `256` should be a constant. This is _REALLY_ bad.
+  float font_scale   = (text.font_size / 256.0f); // @TODO: This is an engine problem, but the `256` should be a constant. This is _REALLY_ bad.
   float prev_advance = 0.0f;
 
   for(nikola::sizei i = 0; i < text.string.size(); i++) {
     nikola::Glyph* glyph = &text.font->glyphs[text.string[i]];
-   
+     
     // Give some love to the Y-axis as well
-    if(glyph->unicode == '\n') {
+    if(text.string[i] == '\n') {
       result.y += text.font_size + 2.0f; // @NOTE: This works for some reason. Don't touch it. 
+      result.x  = 0.0f; 
+
+      continue; 
     }
 
     // Take into account the spaces as well as normal characters
-    if(glyph->unicode == ' ' || glyph->unicode == '\t') {
+    if(text.string[i] == ' ' || text.string[i] == '\t') {
       result.x += prev_advance;
+      continue;
     }
      
-    if(glyph->advance_x > 0) {
-      result.x += glyph->advance_x;
-    }
-    else {
-      result.x += glyph->offset.x + glyph->right;
-    }
-
-    // Will be used for the next glyph
-    prev_advance = glyph->advance_x;
+    result.x    += glyph->advance_x + (glyph->offset.x * font_scale);
+    prev_advance = glyph->advance_x; 
   }
 
   return result * font_scale;
@@ -97,38 +94,38 @@ void ui_text_set_anchor(UIText& text, const UIAnchor anchor) {
   nikola::Vec2 text_size     = ui_text_measure_size(text);
   nikola::Vec2 window_size   = nikola::Vec2(width, height);
   nikola::Vec2 window_center = window_size / 2.0f;
-  nikola::Vec2 padding       = glm::vec2(10.0f, text.font_size);
+  nikola::Vec2 padding       = nikola::Vec2(10.0f, text.font_size);
+  nikola::Vec2 text_center   = text_size / 2.0f;
 
   switch(text.anchor) {
     case UI_ANCHOR_TOP_LEFT:  
       text.position = padding + text.offset;
       break;
     case UI_ANCHOR_TOP_CENTER:
-      text.position.x = (window_center.x - text_size.x / 2.0f) + text.offset.x; 
+      text.position.x = (window_center.x - text_center.x) + text.offset.x; 
       text.position.y = padding.y + text.offset.y; 
       break;
     case UI_ANCHOR_TOP_RIGHT:
       text.position.x = (window_size.x - text_size.x - padding.x) + text.offset.x; 
       text.position.y = padding.y + text.offset.y;  
       break;
-    
     case UI_ANCHOR_CENTER_LEFT:  
       text.position.x = padding.x + text.offset.x;
-      text.position.y = (window_center.y - text_size.y / 2.0f) + text.offset.y; 
+      text.position.y = (window_center.y - text_center.y) + text.offset.y; 
       break;
     case UI_ANCHOR_CENTER:
-      text.position = (window_center - text_size / 2.0f) + text.offset;
+      text.position = (window_center - text_center) + text.offset;
       break;
     case UI_ANCHOR_CENTER_RIGHT:
       text.position.x = (window_size.x - text_size.x - padding.x) + text.offset.x; 
-      text.position.y = (window_center.y - text_size.y / 2.0f) + text.offset.y; 
+      text.position.y = (window_center.y - text_center.y) + text.offset.y; 
       break;
     case UI_ANCHOR_BOTTOM_LEFT:  
       text.position.x = padding.x + text.offset.x;
       text.position.y = (window_size.y - text_size.y - padding.y) + text.offset.y; 
       break;
     case UI_ANCHOR_BOTTOM_CENTER:
-      text.position.x = (window_center.x - text_size.x / 2.0f) + text.offset.x;
+      text.position.x = (window_center.x - text_center.x) + text.offset.x;
       text.position.y = (window_size.y - text_size.y - padding.y) + text.offset.y; 
       break;
     case UI_ANCHOR_BOTTOM_RIGHT:

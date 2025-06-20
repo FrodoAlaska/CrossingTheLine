@@ -12,6 +12,7 @@
     - Add the story through the UI. Some little things here and there on the end menus and maybe something that pops up when you pickup the keys.
     - Fog 
     - Particles
+    - What to do with the keys?
 
 - Get some assets:
     - Arch to hide to car end points 

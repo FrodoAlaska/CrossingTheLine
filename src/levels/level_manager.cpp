@@ -70,16 +70,16 @@ static void init_group_ui(nikola::Window* window) {
   ui_text_create(&s_manager.texts[0], window, text_desc);
 
   text_desc.string = "LEVELS COUNT";
-  text_desc.offset = nikola::Vec2(0.0f, 30.0f);
+  text_desc.offset = nikola::Vec2(0.0f, 35.0f);
   ui_text_create(&s_manager.texts[1], window, text_desc);
   
   text_desc.string = "KEYS COLLECTED COUNT";
-  text_desc.offset = nikola::Vec2(0.0f, 50.0f);
+  text_desc.offset = nikola::Vec2(0.0f, 65.0f);
   ui_text_create(&s_manager.texts[2], window, text_desc);
   
   text_desc.string = "Press [ENTER] To Start";
   text_desc.color  = nikola::Vec4(0.0f, 1.0f, 0.0f, 0.0f);
-  text_desc.offset = nikola::Vec2(0.0f, 90.0f);
+  text_desc.offset = nikola::Vec2(0.0f, 100.0f);
   ui_text_create(&s_manager.texts[3], window, text_desc);
 }
 
@@ -106,9 +106,13 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
   if(event.type != GAME_EVENT_CHAPTER_CHANGED) {
     return;
   }
+
+  // Enable the hud for the specific group
+  s_manager.can_show_hud = true;
   
-  Entity* point_entt = (Entity*)dispatcher;
-  LevelGroup* group  = &s_manager.groups[get_index_from_pos(point_entt)];
+  Entity* point_entt  = (Entity*)dispatcher;
+  nikola::sizei index = get_index_from_pos(point_entt);
+  LevelGroup* group   = &s_manager.groups[index];
 
   // Set up the UI
   ui_text_set_string(s_manager.texts[0], group->name);
@@ -118,9 +122,6 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
  
   nikola::String keys_left = ("Keys: " + std::to_string(group->coins_collected) + '/' + std::to_string(group->level_paths.size()));
   ui_text_set_string(s_manager.texts[2], keys_left);
-
-  // Enable the hud for the specific group
-  s_manager.can_show_hud = true;
 
   if(nikola::input_key_pressed(nikola::KEY_ENTER)) {
     level_unload(s_manager.current_level);
