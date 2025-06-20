@@ -5,6 +5,7 @@
 #include "fog_shader.h"
 #include "sound_manager.h"
 #include "state_manager.h"
+#include "dialogue_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -55,6 +56,9 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
 
   // Levels init
   level_manager_init(window);
+  
+  // Dialogue manager init
+  dialogue_manager_init("res/dialogue.txt");
 
   // Sates init
   state_manager_init(window);

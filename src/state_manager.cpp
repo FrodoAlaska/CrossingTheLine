@@ -2,6 +2,7 @@
 #include "levels/level.h"
 #include "game_event.h"
 #include "ui/ui.h"
+#include "dialogue_manager.h"
 
 #include <nikola/nikola.h>
 
@@ -100,6 +101,10 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
   for(auto& txt : s_manager.current_state->layout.texts) {
     txt.color.a = 0.0f;
   }
+
+  if(event.state_type == STATE_WON) {
+    ui_text_set_string(s_manager.entries[STATE_WON].title, dialogue_manager_advance());
+  }
 }
 
 /// Callbacks
@@ -134,7 +139,7 @@ static void init_menu_layout(nikola::Window* window, const nikola::ResourceID& f
 
 static void init_won_layout(nikola::Window* window, const nikola::ResourceID& font_id) {
   UITextDesc text_desc = {
-    .string = "You will regret it. Time and time again.\nWhatever you do. Whatever you achieve.\nYou will regret it.\n\nDo not exhaust yourself any further.",
+    .string = "",
 
     .font_id   = font_id,
     .font_size = 50.0f,

@@ -6,9 +6,8 @@
     - Design, create, and test Chapter 2 
     
 - Polish points: 
-    - What to do with the keys?
-    - Some kind of story stuff?
-    - Slightly better movements
+    - Fix the UI, damn it!
+    - Slightly better movements (player falling down, footstep detection, etc)
     - Controller support
     - Some kind of credits scene?
     - Fog 
@@ -18,7 +17,6 @@
     - Some 3D model to represent the end point of the level and even the start of the chapter.
     - Sounds for footsteps on paviment and the road 
     - Sound for fail input for trying to access a chapter that is unreachable 
-    - etc...
 
 ## Fixes 
 

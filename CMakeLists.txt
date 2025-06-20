@@ -50,6 +50,7 @@ set(PROJECT_SOURCES
   ${PROJECT_SRC_DIR}/game_event.cpp
   ${PROJECT_SRC_DIR}/sound_manager.cpp
   ${PROJECT_SRC_DIR}/state_manager.cpp
+  ${PROJECT_SRC_DIR}/dialogue_manager.cpp
 
   # Entities
   ${PROJECT_SRC_DIR}/entities/entity.cpp
@@ -70,10 +71,6 @@ set(PROJECT_SOURCES
 )
 ############################################################
 
-### Library sources ###
-############################################################
-############################################################
-
 ### Targets ###
 ############################################################
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
@@ -87,6 +84,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE nikola)
 target_precompile_headers(${PROJECT_NAME} PRIVATE 
   "$<$<COMPILE_LANGUAGE:CXX>:${nikola_SOURCE_DIR}/nikola/include/nikola/nikola.h>"
 )
+
+file(COPY res/dialogue.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/res)
 ############################################################
 
 ### Compiling options ###
