@@ -25,6 +25,8 @@ struct LevelGroup {
   nikola::DynamicArray<nikola::FilePath> level_paths;
   nikola::sizei current_level   = 0;
   nikola::sizei coins_collected = 0;
+
+  bool is_locked;
 };
 /// LevelGroup
 /// ----------------------------------------------------------------------
@@ -49,12 +51,19 @@ static LevelManager s_manager{};
 /// Private functions
 
 static void init_group_ui(nikola::Window* window) {
-  // Group names init
+  // Groups init
 
-  s_manager.groups[0].name = "Hub"; 
-  s_manager.groups[1].name = "Chapter 1"; 
-  s_manager.groups[2].name = "Chapter 2"; 
-  s_manager.groups[3].name = "Chapter 3"; 
+  s_manager.groups[0].name      = "Hub"; 
+  s_manager.groups[0].is_locked = false;
+
+  s_manager.groups[1].name      = "Chapter 1"; 
+  s_manager.groups[1].is_locked = false;
+  
+  s_manager.groups[2].name      = "Chapter 2"; 
+  s_manager.groups[2].is_locked = true;
+  
+  s_manager.groups[3].name      = "Chapter 3"; 
+  s_manager.groups[3].is_locked = true;
 
   // UI init
 
@@ -122,8 +131,19 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
  
   nikola::String keys_left = ("Keys: " + std::to_string(group->coins_collected) + '/' + std::to_string(group->level_paths.size()));
   ui_text_set_string(s_manager.texts[2], keys_left);
+  
+  nikola::String continue_str = "Press [ENTER] To Start";
+  nikola::Vec4 text_color     = nikola::Vec4(0.0f, 1.0f, 0.0f, s_manager.texts[3].color.a);
+  
+  if(group->is_locked) {
+    continue_str = "NOT NOW!"; 
+    text_color   = nikola::Vec4(1.0f, 0.0f, 0.0f, text_color.a);
+  }
 
-  if(nikola::input_key_pressed(nikola::KEY_ENTER)) {
+  s_manager.texts[3].color = text_color;
+  ui_text_set_string(s_manager.texts[3], continue_str);
+
+  if(nikola::input_key_pressed(nikola::KEY_ENTER) && !group->is_locked) {
     level_unload(s_manager.current_level);
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
     level_reset(s_manager.current_level);
@@ -208,27 +228,43 @@ void level_manager_shutdown() {
 }
 
 void level_manager_advance() {
-  LevelGroup* group = &s_manager.groups[s_manager.current_group];
+  LevelGroup* level_group = &s_manager.groups[s_manager.current_group];
   level_unload(s_manager.current_level);
   
   // We'll transition to the hub level if the group is out of levels.
   // Otherwise, we can just continue to the next level in the group.
   
-  group->current_level++; 
-  if(group->current_level >= group->level_paths.size()) {
-    level_load(s_manager.current_level, "levels/C0L0.nklvl");
-    game_event_dispatch(GameEvent{
-      .type       = GAME_EVENT_STATE_CHANGED, 
-      .state_type = STATE_HUB
-    });
-  } 
-  else {
-    level_load(s_manager.current_level, group->level_paths[group->current_level]);
+  level_group->current_level++; 
+  if(level_group->current_level < level_group->level_paths.size()) {
+    level_load(s_manager.current_level, level_group->level_paths[level_group->current_level]);
     game_event_dispatch(GameEvent {
       .type       = GAME_EVENT_STATE_CHANGED, 
       .state_type = STATE_LEVEL 
     });
+
+    return;
+  } 
+
+  // We're out of groups...
+  s_manager.current_group++; 
+  if(s_manager.current_group >= LEVEL_GROUPS_MAX) {
+    // @TODO: Credits scene?
+    return;
   }
+
+  // We cannot advance into the next group of levels until 
+  // the player has collected all of the coins of the previous group. 
+
+  LevelGroup* prev_group = level_group; 
+  level_group            = &s_manager.groups[s_manager.current_group];
+  level_group->is_locked = (level_group->coins_collected < level_group->level_paths.size());
+ 
+  // To the hub world!
+  level_load(s_manager.current_level, "levels/C0L0.nklvl");
+  game_event_dispatch(GameEvent{
+    .type       = GAME_EVENT_STATE_CHANGED, 
+    .state_type = STATE_HUB
+  });
 }
 
 void level_manager_reset() {
