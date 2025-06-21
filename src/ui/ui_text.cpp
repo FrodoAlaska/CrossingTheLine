@@ -56,33 +56,33 @@ void ui_text_create(UIText* text, const nikola::Window* window_ref, const UIText
 }
 
 const nikola::Vec2 ui_text_measure_size(const UIText& text) {
-  nikola::Vec2 result(0.0f);
+  nikola::Vec2 result(0.0f, text.font_size);
 
   float font_scale   = (text.font_size / 256.0f); // @TODO: This is an engine problem, but the `256` should be a constant. This is _REALLY_ bad.
   float prev_advance = 0.0f;
 
-  for(nikola::sizei i = 0; i < text.string.size(); i++) {
-    nikola::Glyph* glyph = &text.font->glyphs[text.string[i]];
+  for(auto& ch : text.string) {
+    nikola::Glyph* glyph = &text.font->glyphs[ch];
      
     // Give some love to the Y-axis as well
-    if(text.string[i] == '\n') {
-      result.y += text.font_size + 2.0f; // @NOTE: This works for some reason. Don't touch it. 
+    if(ch == '\n') {
+      result.y += text.font_size;
       result.x  = 0.0f; 
 
       continue; 
     }
 
     // Take into account the spaces as well as normal characters
-    if(text.string[i] == ' ' || text.string[i] == '\t') {
+    if(ch == ' ' || ch == '\t') {
       result.x += prev_advance;
       continue;
     }
      
-    result.x    += glyph->advance_x + (glyph->offset.x * font_scale);
-    prev_advance = glyph->advance_x; 
+    result.x    += glyph->size.x + glyph->offset.x;
+    prev_advance = glyph->advance_x;
   }
 
-  return result * font_scale;
+  return nikola::Vec2(result.x * font_scale, result.y);
 }
 
 void ui_text_set_anchor(UIText& text, const UIAnchor anchor) {
@@ -91,11 +91,13 @@ void ui_text_set_anchor(UIText& text, const UIAnchor anchor) {
   int width, height; 
   nikola::window_get_size(text.window_ref, &width, &height);
 
-  nikola::Vec2 text_size     = ui_text_measure_size(text);
+  nikola::Vec2 text_size   = ui_text_measure_size(text);
+  nikola::Vec2 text_center = text_size / 2.0f;
+  
   nikola::Vec2 window_size   = nikola::Vec2(width, height);
   nikola::Vec2 window_center = window_size / 2.0f;
-  nikola::Vec2 padding       = nikola::Vec2(10.0f, text.font_size);
-  nikola::Vec2 text_center   = text_size / 2.0f;
+  
+  nikola::Vec2 padding = nikola::Vec2(10.0f, text.font_size);
 
   switch(text.anchor) {
     case UI_ANCHOR_TOP_LEFT:  

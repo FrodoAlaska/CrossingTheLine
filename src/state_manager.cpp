@@ -102,6 +102,9 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
     txt.color.a = 0.0f;
   }
 
+  // Move through the dialogue when the player reaches the end
+  //
+  // @NOTE: Having this "advance" function here might not be the best, but it works.
   if(event.state_type == STATE_WON) {
     ui_text_set_string(s_manager.entries[STATE_WON].title, dialogue_manager_advance());
   }
@@ -124,7 +127,7 @@ static void init_menu_layout(nikola::Window* window, const nikola::ResourceID& f
     .string = "Crossing The Line",
 
     .font_id   = font_id,
-    .font_size = 80.0f,
+    .font_size = 70.0f,
 
     .anchor = UI_ANCHOR_TOP_CENTER, 
     .color  = nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f),
@@ -155,14 +158,14 @@ static void init_won_layout(nikola::Window* window, const nikola::ResourceID& fo
                    font_id,
                    on_won_layout_click_func);
  
-  ui_layout_begin(*won_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
-  ui_layout_push_text(*won_layout, "Continue the suffering", 35.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 0.0f));
+  ui_layout_begin(*won_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 0.0f));
+  ui_layout_push_text(*won_layout, "Suffer", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 0.0f));
   ui_layout_end(*won_layout);
 }
 
 static void init_lost_layout(nikola::Window* window, const nikola::ResourceID& font_id) {
   UITextDesc text_desc = {
-    .string = "To give up is a virtue. Do not continue.\nGive it all up and live a life of peace.",
+    .string = "To give up is a virtue. Do not continue.\nGive it all up and live a peacful life.",
 
     .font_id   = font_id,
     .font_size = 50.0f,

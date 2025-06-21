@@ -89,7 +89,7 @@ void sound_manager_init(Level* lvl) {
   game_event_listen(GAME_EVENT_COIN_COLLECTED, on_sound_play);
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
 
-  NIKOLA_LOG_TRACE("Initialized sound manager");
+  NIKOLA_LOG_DEBUG("Initialized sound manager");
 }
 
 void sound_manager_shutdown() {

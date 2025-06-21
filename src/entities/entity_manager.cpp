@@ -148,7 +148,7 @@ void entity_manager_load() {
     nikola::collider_set_local_position(s_entt.coin.collider, nikola::Vec3(0.0f, 0.0f, 1.6f));
     
     nikola::physics_body_set_rotation(s_entt.coin.body, nikola::Vec3(1.0f, 0.0f, 0.0f), 4.7f);
-    nikola::physics_body_set_angular_velocity(s_entt.coin.body, nikola::Vec3(0.0f, 1.0f, 0.0f));
+    nikola::physics_body_set_angular_velocity(s_entt.coin.body, nikola::Vec3(0.0f, 4.5f, 0.0f));
   }
 
   // Points init

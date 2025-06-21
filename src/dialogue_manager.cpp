@@ -30,18 +30,21 @@ void dialogue_manager_init(const nikola::FilePath& txt_path) {
 
   // Fill the lines array
   nikola::String line = ""; 
-  for(auto& ch : dialogue) {
-    if(ch != '*') {
-      line += ch;
+  for(nikola::sizei i = 0; i < dialogue.size(); i++) {
+    if(dialogue[i] != ';') {
+      line += dialogue[i];
       continue;
     }
+
+    // Skip the newline after the delimiter (the `;` in this case)
+    i++;
 
     s_manager.lines.push_back(line);
     line = "";
   }
 
   file.close();
-  NIKOLA_LOG_TRACE("Loaded dialogue at \'%s\'", txt_path.c_str());
+  NIKOLA_LOG_DEBUG("Loaded dialogue at \'%s\'", txt_path.c_str());
 }
 
 const nikola::String& dialogue_manager_advance() {
