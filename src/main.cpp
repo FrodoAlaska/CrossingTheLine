@@ -2,6 +2,11 @@
 
 #include <nikola/nikola_app.h>
 
+// Yeah, unfortunate...
+#if NIKOLA_PLATFORM_WINDOWS == 1 
+#include <windows.h>
+#endif
+
 int main(int argc, char** argv) {
   // Some useful flags
   int win_flags = nikola::WINDOW_FLAGS_FOCUS_ON_CREATE | 
@@ -37,3 +42,5 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+
+// NIKOLA_MAIN(engine_main);

@@ -1,9 +1,12 @@
 if(WIN32)
   set(PROJECT_BUILD_FLAGS 
-    "$<$<CONFIG:Debug>:/W3>$<$<CONFIG:Release>:/W0 /O2>"
+    "$<$<CONFIG:Debug>:/W3>$<$<CONFIG:Release>:/W0;/O2>"
   )
   set(PROJECT_BUILD_DEFINITIONS 
     "$<$<CONFIG:Debug>:DEBUG; _DEBUG>$<$<CONFIG:Release>:NDEBUG _NDEBUG>"
+  )
+  set(PROJECT_EXE_TYPE 
+    "$<$<CONFIG:Debug>:>$<$<CONFIG:Release>:WIN32>"
   )
 elseif(LINUX)
   # Debug builds 

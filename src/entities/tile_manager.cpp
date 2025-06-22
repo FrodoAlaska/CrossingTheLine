@@ -1,5 +1,6 @@
 #include "entity.h"
 #include "levels/level.h"
+#include "sound_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -193,6 +194,34 @@ void tile_manager_render_gui() {
       }
       
       ImGui::PopID();
+    }
+  }
+}
+
+void tile_manager_check_collisions(Player& player) {
+  if(!player.entity.is_active) {
+    return;
+  }
+
+  player.can_move = false;
+
+  // Player VS. Tiles
+  for(auto tile : s_tiles.tiles) {
+    if(!entity_aabb_test(player.entity, tile.entity)) {
+      continue;
+    }
+
+    switch(tile.type) {
+      case TILE_ROAD:
+        player.current_footstep_sound = SOUND_TILE_ROAD;
+        player.can_move               = true;
+        break;
+      case TILE_PAVIMENT:
+        player.current_footstep_sound = SOUND_TILE_PAVIMENT;
+        player.can_move               = true;
+        break;
+      default:
+        break;
     }
   }
 }

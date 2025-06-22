@@ -38,8 +38,11 @@ void entity_create(Entity* entity,
 }
 
 const bool entity_aabb_test(Entity& entity, Entity& other) {
-  nikola::Vec3 sum_size = nikola::collider_get_extents(entity.collider) + nikola::collider_get_extents(other.collider);
-  nikola::Vec3 diff     = nikola::physics_body_get_position(other.body) - nikola::physics_body_get_position(entity.body); 
+  nikola::Vec3 sum_size = (nikola::collider_get_extents(entity.collider) + 
+                          nikola::collider_get_extents(other.collider)) / 2.0f;
+
+  nikola::Vec3 diff     = nikola::collider_get_world_transform(other.collider).position - 
+                          nikola::collider_get_world_transform(entity.collider).position; 
 
   // The sum of the sizes is greater than the difference between
   // the two boxes on ALL axises

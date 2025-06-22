@@ -155,6 +155,9 @@ static void init_resources(Level* lvl) {
   lvl->resources[LEVEL_RESOURCE_SOUND_UI_NAVIGATE]   = nikola::resources_get_id(lvl->resource_group, "sfx_ui_navigate");
   lvl->resources[LEVEL_RESOURCE_SOUND_UI_TRANSITION] = nikola::resources_get_id(lvl->resource_group, "sfx_transition");
   
+  lvl->resources[LEVEL_RESOURCE_SOUND_TILE_ROAD]     = nikola::resources_get_id(lvl->resource_group, "sfx_road");
+  lvl->resources[LEVEL_RESOURCE_SOUND_TILE_PAVIMENT] = nikola::resources_get_id(lvl->resource_group, "sfx_paviment");
+  
   lvl->resources[LEVEL_RESOURCE_MUSIC_AMBIANCE] = nikola::resources_get_id(lvl->resource_group, "music_ambiance");
   lvl->resources[LEVEL_RESOURCE_MUSIC_HUB]      = nikola::resources_get_id(lvl->resource_group, "music_nocturne");
 
@@ -270,7 +273,7 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
   // Load tiles
   tile_manager_load();
 
-  NIKOLA_PERF_TIMER_END(timer, (nikola::filepath_filename(path) + " loaded").c_str());
+  NIKOLA_PERF_TIMER_END(timer, (nikola::filepath_filename(path)).c_str());
   return true;
 }
 
@@ -303,6 +306,7 @@ void level_update(Level* lvl) {
   // Take input
   
   // Disable/enable the GUI
+#if NIKOLA_BUILD_DEBUG == 1
   if(nikola::input_key_pressed(nikola::KEY_F1)) {
     lvl->has_editor       = !lvl->has_editor;
     lvl->debug_mode       = lvl->has_editor;
@@ -311,12 +315,13 @@ void level_update(Level* lvl) {
     nikola::physics_world_set_paused(lvl->has_editor);
     nikola::input_cursor_show(lvl->has_editor);
   }
+#endif
 
-  // Toggle pause mode
-  if(nikola::input_key_pressed(nikola::KEY_P)) {
-    lvl->is_paused = !lvl->is_paused;
-    nikola::physics_world_set_paused(lvl->is_paused);
-  }
+  // @TODO: Toggle pause mode
+  // if(nikola::input_key_pressed(nikola::KEY_P)) {
+  //   lvl->is_paused = !lvl->is_paused;
+  //   nikola::physics_world_set_paused(lvl->is_paused);
+  // }
  
   if(lvl->is_paused) {
     ui_layout_update(lvl->pause_layout);

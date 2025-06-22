@@ -68,6 +68,17 @@ struct Entity {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// Player 
+struct Player {
+  Entity entity; 
+
+  int current_footstep_sound = -1;
+  bool can_move              = true;
+};
+/// Player 
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// Vehicle 
 struct Vehicle {
   Entity entity;
@@ -109,11 +120,11 @@ const bool entity_aabb_test(Entity& entity, Entity& other);
 /// ----------------------------------------------------------------------
 /// Player functions
 
-void player_create(Entity* player, Level* lvl, const nikola::Vec3& position);
+void player_create(Player* player, Level* lvl, const nikola::Vec3& position);
 
-void player_update(Entity& player); 
+void player_update(Player& player); 
 
-void player_set_active(Entity& player, const bool active);
+void player_set_active(Player& player, const bool active);
 
 /// Player functions
 /// ----------------------------------------------------------------------
@@ -179,6 +190,8 @@ void tile_manager_update();
 void tile_manager_render();
 
 void tile_manager_render_gui();
+
+void tile_manager_check_collisions(Player& player);
 
 /// Tile manager functions
 /// ----------------------------------------------------------------------

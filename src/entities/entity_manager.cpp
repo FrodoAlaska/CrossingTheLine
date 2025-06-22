@@ -12,7 +12,9 @@
 struct EntityManager {
   Level* level_ref;
 
-  Entity player, coin; 
+  Player player;
+  Entity coin; 
+
   nikola::DynamicArray<Entity> points;
   nikola::DynamicArray<Vehicle> vehicles;
 };
@@ -29,7 +31,9 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
 
   switch(other->type) {
     case ENTITY_VEHICLE:
-      player_set_active(*player, false);
+      player->is_active = false;
+      nikola::physics_body_set_awake(player->body, false);
+
       game_event_dispatch(GameEvent{
         .type       = GAME_EVENT_STATE_CHANGED, 
         .state_type = STATE_LOST
@@ -106,7 +110,7 @@ void entity_manager_create(Level* level_ref) {
 
 void entity_manager_destroy() {
   // Player destroy
-  nikola::physics_body_destroy(s_entt.player.body);
+  nikola::physics_body_destroy(s_entt.player.entity.body);
 
   // Coin destroy 
   if(s_entt.coin.is_active) {
@@ -166,6 +170,16 @@ void entity_manager_load() {
                   true);
   }
 
+  // Death point init
+  s_entt.points.push_back(Entity{}); 
+  entity_create(&s_entt.points[s_entt.points.size() - 1], 
+                s_entt.level_ref, 
+                nikola::Vec3(-8.0f, -16.0f, 8.0f),
+                nikola::Vec3(128.0f, 1.0f, 128.0f),
+                ENTITY_DEATH_POINT,
+                nikola::PHYSICS_BODY_STATIC, 
+                true);
+
   // Vehicles init
   
   s_entt.vehicles.resize(nklvl->vehicles_count);
@@ -186,7 +200,7 @@ void entity_manager_save() {
   NKLevelFile* nklvl = &s_entt.level_ref->nkbin;
 
   // Save the player
-  nklvl->start_position = nikola::physics_body_get_position(s_entt.player.body); 
+  nklvl->start_position = nikola::physics_body_get_position(s_entt.player.entity.body); 
 
   // Save the coin 
 
@@ -197,7 +211,7 @@ void entity_manager_save() {
 
   // Save the end points
 
-  nklvl->points_count = s_entt.points.size();
+  nklvl->points_count = s_entt.points.size() - 1; // @NOTE: Skip the death point at the end
   for(nikola::sizei i = 0; i < s_entt.points.size(); i++) {
     Entity* point = &s_entt.points[i];
 
@@ -221,13 +235,18 @@ void entity_manager_save() {
 
 void entity_manager_reset() {
   // Reset the player
-  nikola::physics_body_set_position(s_entt.player.body, s_entt.level_ref->nkbin.start_position);
-  s_entt.player.is_active = true;
+  nikola::physics_body_set_position(s_entt.player.entity.body, s_entt.level_ref->nkbin.start_position);
+  s_entt.player.entity.is_active = true;
 
   // Reset the vehicles
   for(auto& v : s_entt.vehicles) {
     nikola::physics_body_set_position(v.entity.body, v.entity.start_pos);
     vehicle_set_active(v, true);
+  }
+
+  // Reset the coin
+  if(s_entt.coin.is_active) {
+    nikola::physics_body_set_angular_velocity(s_entt.coin.body, nikola::Vec3(0.0f, 4.5f, 0.0f));
   }
 }
 
@@ -237,13 +256,13 @@ void entity_manager_update() {
   
   // AABB tests (only if the player is active)
   
-  if(!s_entt.player.is_active) {
+  if(!s_entt.player.entity.is_active) {
     return;
   }
 
   // Points test
   for(auto& point : s_entt.points) {
-    if(!entity_aabb_test(s_entt.player, point)) {
+    if(!entity_aabb_test(s_entt.player.entity, point)) {
       continue;
     }
 
@@ -270,6 +289,9 @@ void entity_manager_update() {
         break;
     }
   }
+
+  // Tiles test
+  tile_manager_check_collisions(s_entt.player);
 }
 
 void entity_manager_render() {
@@ -301,15 +323,15 @@ void entity_manager_render() {
 
   // Render the player 
  
-  transform = nikola::physics_body_get_transform(s_entt.player.body);
-  nikola::transform_scale(transform, nikola::collider_get_extents(s_entt.player.collider));
+  transform = nikola::physics_body_get_transform(s_entt.player.entity.body);
+  nikola::transform_scale(transform, nikola::collider_get_extents(s_entt.player.entity.collider));
   nikola::renderer_queue_mesh(s_entt.level_ref->resources[LEVEL_RESOURCE_CUBE], transform);
 
   // Debug rendering
   
   if(s_entt.level_ref->debug_mode) {
     // Player
-    nikola::renderer_debug_collider(s_entt.player.collider);
+    nikola::renderer_debug_collider(s_entt.player.entity.collider);
 
     // Points
     for(auto& point : s_entt.points) {
@@ -326,8 +348,8 @@ void entity_manager_render() {
 void entity_manager_render_gui() {
   // Player
   if(ImGui::CollapsingHeader("Player")) {
-    nikola::gui_edit_physics_body("Player body", s_entt.player.body);
-    nikola::gui_edit_collider("Player collider", s_entt.player.collider);
+    nikola::gui_edit_physics_body("Player body", s_entt.player.entity.body);
+    nikola::gui_edit_collider("Player collider", s_entt.player.entity.collider);
   }
 
   // Coin

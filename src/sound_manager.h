@@ -1,7 +1,6 @@
 #pragma once
 
 #include "levels/level.h"
-#include "entities/entity.h"
 
 #include <nikola/nikola.h>
 
@@ -15,6 +14,9 @@ enum SoundType {
   SOUND_UI_CLICK, 
   SOUND_UI_NAVIGATE, 
   SOUND_UI_TRANSITION,
+
+  SOUND_TILE_ROAD, 
+  SOUND_TILE_PAVIMENT,
 
   SOUND_AMBIANCE,
   SOUND_HUB,
