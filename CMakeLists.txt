@@ -51,6 +51,7 @@ set(PROJECT_SOURCES
   ${PROJECT_SRC_DIR}/sound_manager.cpp
   ${PROJECT_SRC_DIR}/state_manager.cpp
   ${PROJECT_SRC_DIR}/dialogue_manager.cpp
+  ${PROJECT_SRC_DIR}/input_manager.cpp
 
   # Entities
   ${PROJECT_SRC_DIR}/entities/entity.cpp

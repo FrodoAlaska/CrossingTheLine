@@ -5,7 +5,6 @@
     - Save the dialogue in a binary file instead of a text file for the dist build.
     
 - Polish points: 
-    - Controller support
     - Fog 
     - Particles
     - Better state code structure

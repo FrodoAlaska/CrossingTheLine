@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "sound_manager.h"
+#include "input_manager.h"
 #include "game_event.h"
 
 #include <nikola/nikola.h>
@@ -64,7 +65,7 @@ void ui_layout_update(UILayout& layout) {
     return;
   }
 
-  if(nikola::input_key_pressed(nikola::KEY_UP)) {
+  if(input_manager_action_pressed(INPUT_ACTION_NAVIGATE_UP)) {
     game_event_dispatch(GameEvent {
       .type       = GAME_EVENT_SOUND_PLAYED, 
       .sound_type = SOUND_UI_NAVIGATE, 
@@ -72,7 +73,7 @@ void ui_layout_update(UILayout& layout) {
 
     layout.current_option--;
   }
-  else if(nikola::input_key_pressed(nikola::KEY_DOWN)) {
+  else if(input_manager_action_pressed(INPUT_ACTION_NAVIGATE_DOWN)) {
     game_event_dispatch(GameEvent {
       .type       = GAME_EVENT_SOUND_PLAYED, 
       .sound_type = SOUND_UI_NAVIGATE, 
@@ -90,7 +91,7 @@ void ui_layout_update(UILayout& layout) {
   } 
  
   // "Applying" the option and invoking the callback if it exists
-  if(nikola::input_key_pressed(nikola::KEY_ENTER) && layout.click_func) {
+  if(input_manager_action_pressed(INPUT_ACTION_ACCEPT) && layout.click_func) {
     game_event_dispatch(GameEvent {
       .type       = GAME_EVENT_SOUND_PLAYED, 
       .sound_type = SOUND_UI_CLICK, 

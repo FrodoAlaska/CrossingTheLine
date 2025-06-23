@@ -3,6 +3,7 @@
 #include "ui/ui.h"
 #include "sound_manager.h"
 #include "state_manager.h"
+#include "input_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -23,7 +24,7 @@ struct LevelGroup {
   nikola::String name; 
 
   nikola::DynamicArray<nikola::FilePath> level_paths;
-  nikola::sizei current_level   = 3;
+  nikola::sizei current_level   = 0;
   nikola::sizei coins_collected = 0;
 
   bool is_locked;
@@ -132,7 +133,7 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
   nikola::String keys_left = ("Keys: " + std::to_string(group->coins_collected) + '/' + std::to_string(group->level_paths.size()));
   ui_text_set_string(s_manager.texts[2], keys_left);
   
-  nikola::String continue_str = "Press [ENTER] To Start";
+  nikola::String continue_str = "Start your journey";
   nikola::Vec4 text_color     = nikola::Vec4(0.0f, 1.0f, 0.0f, s_manager.texts[3].color.a);
   
   if(group->is_locked) {
@@ -143,7 +144,7 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
   s_manager.texts[3].color = text_color;
   ui_text_set_string(s_manager.texts[3], continue_str);
 
-  if(!nikola::input_key_pressed(nikola::KEY_ENTER)) {
+  if(!input_manager_action_pressed(INPUT_ACTION_ACCEPT)) {
     return;
   }
 

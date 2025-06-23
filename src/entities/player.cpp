@@ -1,6 +1,7 @@
 #include "entity.h"
 #include "levels/level.h"
 #include "sound_manager.h"
+#include "input_manager.h"
 #include "game_event.h"
 
 #include <nikola/nikola.h>
@@ -43,36 +44,12 @@ void player_update(Player& player) {
     return;
   }
 
-  nikola::Vec3 velocity = nikola::Vec3(0.0f);
-  bool can_play_sound   = false;
-
-  // Move forward
-  if(nikola::input_key_down(nikola::KEY_W)) {
-    velocity.x     = PLAYER_SPEED;
-    can_play_sound = true;
-  }
-  // Move backwards
-  else if(nikola::input_key_down(nikola::KEY_S)) {
-    velocity.x     = -PLAYER_SPEED;
-    can_play_sound = true;
-  }
- 
-  // Move right
-  if(nikola::input_key_down(nikola::KEY_A)) {
-    velocity.z     = -PLAYER_SPEED;
-    can_play_sound = true;
-  }
-  // Move left
-  else if(nikola::input_key_down(nikola::KEY_D)) {
-    velocity.z     = PLAYER_SPEED;
-    can_play_sound = true;
-  }
-
   // Apply the velocity
+  nikola::Vec3 velocity = input_manager_get_movement_velocity() * PLAYER_SPEED;
   nikola::physics_body_set_linear_velocity(player.entity.body, velocity);
 
   // Play the footstep sound if possible
-  if(can_play_sound) {
+  if(velocity.x != 0 || velocity.z != 0) {
     game_event_dispatch(GameEvent{
       .type       = GAME_EVENT_SOUND_PLAYED, 
       .sound_type = player.current_footstep_sound,
