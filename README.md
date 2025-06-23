@@ -10,18 +10,18 @@ As the player, you are tasked with crossing the treacherous levels, evading all 
 
 ## Showcase 
 
-![Screenshot](https://github.com/FrodoAlaska/Nikola/blob/master/assets/screenshot_1.png) 
+![Screenshot](https://github.com/FrodoAlaska/CrossingTheLine/blob/master/assets/screenshot_1.png) 
 
 ---
 
-![Screenshot](https://github.com/FrodoAlaska/Nikola/blob/master/assets/screenshot_2.png) 
+![Screenshot](https://github.com/FrodoAlaska/CrossingTheLine/blob/master/assets/screenshot_2.png) 
 
 ---
-![Screenshot](https://github.com/FrodoAlaska/Nikola/blob/master/assets/screenshot_3.png) 
+![Screenshot](https://github.com/FrodoAlaska/CrossingTheLine/blob/master/assets/screenshot_3.png) 
 
 ---
 
-![Screenshot](https://github.com/FrodoAlaska/Nikola/blob/master/assets/screenshot_4.png) 
+![Screenshot](https://github.com/FrodoAlaska/CrossingTheLine/blob/master/assets/screenshot_4.png) 
 
 ---
 
