@@ -10,26 +10,6 @@ Debug/
 Release/
 res/
 
-# Ignore certain resource files 
-*.png 
-*.jpeg
-*.jpg 
-*.tga 
-*.hdr
-*.obj 
-*.gltf 
-*.bin 
-*.fbx 
-*.mtl 
-*.glsl
-*.otf 
-*.ttf 
-*.bmp
-*.fnt
-*.mp3 
-*.ogg 
-*.wav
-
 # Ignore compiled object files and binaries
 *.o
 *.obj
