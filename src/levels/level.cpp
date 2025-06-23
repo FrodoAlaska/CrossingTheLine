@@ -103,15 +103,6 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
   }
 }
 
-static void on_pause_layout(UILayout& layout, UIText& text, void* user_data) {
-  Level* lvl = (Level*)user_data;
-
-  if(layout.current_option == 0) {
-    lvl->is_paused = false;
-    nikola::physics_world_set_paused(false);
-  }
-}
-
 /// Callbacks
 /// ----------------------------------------------------------------------
 
@@ -150,6 +141,7 @@ static void init_resources(Level* lvl) {
   lvl->resources[LEVEL_RESOURCE_SOUND_DEATH]       = nikola::resources_get_id(lvl->resource_group, "sfx_death");
   lvl->resources[LEVEL_RESOURCE_SOUND_KEY_COLLECT] = nikola::resources_get_id(lvl->resource_group, "sfx_key_collect");
   lvl->resources[LEVEL_RESOURCE_SOUND_WIN]         = nikola::resources_get_id(lvl->resource_group, "sfx_win");
+  lvl->resources[LEVEL_RESOURCE_SOUND_FAIL_INPUT]  = nikola::resources_get_id(lvl->resource_group, "sfx_fail_input");
   
   lvl->resources[LEVEL_RESOURCE_SOUND_UI_CLICK]      = nikola::resources_get_id(lvl->resource_group, "sfx_ui_click");
   lvl->resources[LEVEL_RESOURCE_SOUND_UI_NAVIGATE]   = nikola::resources_get_id(lvl->resource_group, "sfx_ui_navigate");
@@ -168,17 +160,6 @@ static void init_resources(Level* lvl) {
 static void lerp_camera(Level* lvl) {
   nikola::Camera* camera = &lvl->main_camera;
   camera->position       = nikola::vec3_lerp(camera->position, lvl->current_lerp_point, nikola::niclock_get_delta_time() * 1.5f);
-}
-
-static void init_ui(Level* lvl) {
-  // Layout init
-  ui_layout_create(&lvl->pause_layout, lvl->window_ref, lvl->resources[LEVEL_RESOURCE_FONT], on_pause_layout, lvl);
-
-  // Texts init
-
-  ui_layout_begin(lvl->pause_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
-  ui_layout_push_text(lvl->pause_layout, "Resume", 40.0f, nikola::Vec4(1.0f));
-  ui_layout_end(lvl->pause_layout);
 }
 
 /// Private functions
@@ -225,6 +206,7 @@ Level* level_create(nikola::Window* window) {
  
   // Listen to events
   nikola::event_listen(nikola::EVENT_MOUSE_SCROLL_WHEEL, mouse_scroll_event, &lvl->gui_camera);
+  game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed, lvl);
 
   // Current camera init
   lvl->frame.camera   = lvl->main_camera;
@@ -243,12 +225,6 @@ Level* level_create(nikola::Window* window) {
   lvl->frame.dir_light.direction = nikola::Vec3(-1.0f);
   lvl->frame.dir_light.color     = nikola::Vec3(0.7f);
   lvl->frame.ambient             = nikola::Vec3(0.5f);
-
-  // UI init
-  init_ui(lvl);
-
-  // Listen to event
-  game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed, lvl);
 
   return lvl;
 }
@@ -316,18 +292,7 @@ void level_update(Level* lvl) {
     nikola::input_cursor_show(lvl->has_editor);
   }
 #endif
-
-  // @TODO: Toggle pause mode
-  // if(nikola::input_key_pressed(nikola::KEY_P)) {
-  //   lvl->is_paused = !lvl->is_paused;
-  //   nikola::physics_world_set_paused(lvl->is_paused);
-  // }
  
-  if(lvl->is_paused) {
-    ui_layout_update(lvl->pause_layout);
-    return;
-  }
-
   // Update state
 
   // Keep lerping the camera which is honestly a bad idea
@@ -355,14 +320,6 @@ void level_render(Level* lvl) {
 
   // Render the tiles
   tile_manager_render(); 
-}
-
-void level_render_hud(Level* lvl) {
-  if(!lvl->is_paused) {
-    return;
-  }
-
-  ui_layout_render_animation(lvl->pause_layout, UI_TEXT_ANIMATION_BLINK, 5.0f);
 }
 
 void level_render_gui(Level* lvl) { 

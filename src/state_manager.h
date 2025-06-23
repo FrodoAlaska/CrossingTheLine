@@ -7,11 +7,12 @@
 enum StateType {
   STATE_MENU = 0, 
   STATE_HUB,
-  STATE_LEVEL, 
+  STATE_LEVEL,
   STATE_WON,
   STATE_LOST,
+  STATE_CREDITS,
 
-  STATES_MAX = STATE_LOST + 1,
+  STATES_MAX = STATE_CREDITS + 1,
 };
 /// StateType
 /// ----------------------------------------------------------------------

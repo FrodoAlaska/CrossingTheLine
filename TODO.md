@@ -6,18 +6,16 @@
     
 - Polish points: 
     - Controller support
-    - Some kind of credits scene?
     - Fog 
     - Particles
+    - Better state code structure
+    - Improved credits scene
 
 - Get some assets:
     - Some 3D model to represent the end point of the level and even the start of the chapter.
-    - Sounds for footsteps on paviment and the road 
-    - Sound for fail input for trying to access a chapter that is unreachable 
 
 ## Fixes 
 
-- Better pause menu. The pause gets activated even in the main menu.
 - The player should not die in the hub world
 
 # Road To The End 

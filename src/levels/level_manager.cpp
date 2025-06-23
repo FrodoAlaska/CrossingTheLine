@@ -23,7 +23,7 @@ struct LevelGroup {
   nikola::String name; 
 
   nikola::DynamicArray<nikola::FilePath> level_paths;
-  nikola::sizei current_level   = 0;
+  nikola::sizei current_level   = 3;
   nikola::sizei coins_collected = 0;
 
   bool is_locked;
@@ -143,7 +143,17 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
   s_manager.texts[3].color = text_color;
   ui_text_set_string(s_manager.texts[3], continue_str);
 
-  if(nikola::input_key_pressed(nikola::KEY_ENTER) && !group->is_locked) {
+  if(!nikola::input_key_pressed(nikola::KEY_ENTER)) {
+    return;
+  }
+
+  if(group->is_locked) {
+    game_event_dispatch(GameEvent{
+      .type       = GAME_EVENT_SOUND_PLAYED, 
+      .sound_type = SOUND_FAIL_INPUT,
+    });
+  }
+  else {
     level_unload(s_manager.current_level);
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
     level_reset(s_manager.current_level);
@@ -247,8 +257,13 @@ void level_manager_advance() {
 
   // We're out of groups...
   s_manager.current_group++; 
-  if(s_manager.current_group >= LEVEL_GROUPS_MAX) {
-    // @TODO: Credits scene?
+  if(s_manager.current_group >= 1) {
+    level_load(s_manager.current_level, "levels/C0L0.nklvl");
+    game_event_dispatch(GameEvent{
+      .type       = GAME_EVENT_STATE_CHANGED, 
+      .state_type = STATE_CREDITS
+     });
+
     return;
   }
 
@@ -268,7 +283,7 @@ void level_manager_advance() {
 }
 
 void level_manager_reset() {
-  level_reset(s_manager.current_level);
+  s_manager.current_group = 1;
 }
 
 void level_manager_update() {
@@ -280,8 +295,6 @@ void level_manager_render() {
 }
 
 void level_manager_render_hud() {
-  level_render_hud(s_manager.current_level);
-
   UITextAnimation anim_type = s_manager.can_show_hud ? UI_TEXT_ANIMATION_FADE_IN : UI_TEXT_ANIMATION_FADE_OUT;
   for(nikola::sizei i = 0; i < GROUP_TEXTS_MAX; i++) {
     ui_text_render_animation(s_manager.texts[i], anim_type, 5.0f);

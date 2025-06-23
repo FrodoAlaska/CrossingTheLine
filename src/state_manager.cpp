@@ -23,12 +23,22 @@ enum WonOptionID {
 /// WonOptionID
 /// ----------------------------------------------------------------------
 
+/// ----------------------------------------------------------------------
 /// LostOptionID
 enum LostOptionID {
   LOST_OPTION_RETRY = 0, 
   LOST_OPTION_QUIT,
 };
 /// LostOptionID
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// CreditsOptionID
+enum CreditsOptionID {
+  CREDITS_OPTION_RETRY = 0, 
+  CREDITS_OPTION_QUIT,
+};
+/// CreditsOptionID
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -43,7 +53,7 @@ struct StateEntry {
 /// ----------------------------------------------------------------------
 /// StateManager
 struct StateManager {
-  StateEntry* current_state = nullptr;
+  StateType current_state;
   StateEntry entries[STATES_MAX];
 };
 
@@ -90,15 +100,30 @@ static void on_lost_layout_click_func(UILayout& layout, UIText& text, void* user
   }
 }
 
+static void on_credits_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
+  switch(layout.current_option) {
+    case CREDITS_OPTION_RETRY:
+      game_event_dispatch(GameEvent {
+        .type       = GAME_EVENT_STATE_CHANGED, 
+        .state_type = STATE_HUB 
+      });
+      level_manager_reset();
+      break;
+    case CREDITS_OPTION_QUIT:
+      nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
+      break;
+  }
+}
+
 static void on_state_change(const GameEvent& event, void* dispatcher, void* listener) {
   NIKOLA_ASSERT((event.state_type >= STATE_MENU && event.state_type < STATES_MAX), "Invalid State ID given to event");
 
   // Reset the layout before switching to it
   
-  s_manager.current_state = &s_manager.entries[event.state_type];
+  s_manager.current_state = (StateType)event.state_type;
 
-  s_manager.current_state->title.color.a = 0.0f;
-  for(auto& txt : s_manager.current_state->layout.texts) {
+  s_manager.entries[s_manager.current_state].title.color.a = 0.0f;
+  for(auto& txt : s_manager.entries[s_manager.current_state].layout.texts) {
     txt.color.a = 0.0f;
   }
 
@@ -187,6 +212,30 @@ static void init_lost_layout(nikola::Window* window, const nikola::ResourceID& f
   ui_layout_end(*lost_layout);
 }
 
+static void init_credits_layout(nikola::Window* window, const nikola::ResourceID& font_id) {
+  UITextDesc text_desc = {
+    .string = "Thanks for playing the game!",
+
+    .font_id   = font_id,
+    .font_size = 70.0f,
+
+    .anchor = UI_ANCHOR_TOP_CENTER, 
+    .color  = nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f),
+  };
+  ui_text_create(&s_manager.entries[STATE_CREDITS].title, window, text_desc);
+  
+  UILayout* layout = &s_manager.entries[STATE_CREDITS].layout;
+  ui_layout_create(layout, 
+                   window, 
+                   font_id,
+                   on_credits_layout_click_func);
+ 
+  ui_layout_begin(*layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
+  ui_layout_push_text(*layout, "Relive", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
+  ui_layout_push_text(*layout, "Quit", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
+  ui_layout_end(*layout);
+}
+
 /// Private functions
 /// ----------------------------------------------------------------------
 
@@ -201,9 +250,10 @@ void state_manager_init(nikola::Window* window) {
   init_menu_layout(window, font_id);
   init_won_layout(window, font_id);
   init_lost_layout(window, font_id);
+  init_credits_layout(window, font_id);
 
   // Current state init 
-  s_manager.current_state = &s_manager.entries[STATE_MENU];
+  s_manager.current_state = STATE_MENU;
 
   // Listen events
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
@@ -211,14 +261,15 @@ void state_manager_init(nikola::Window* window) {
 
 void state_manager_update() {
   // Update the current state
-  ui_layout_update(s_manager.current_state->layout);
+  ui_layout_update(s_manager.entries[s_manager.current_state].layout);
 }
 
 void state_manager_render_hud() {
   // Render the current state
 
-  ui_text_render_animation(s_manager.current_state->title, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
-  ui_layout_render_animation(s_manager.current_state->layout, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
+  StateEntry* state = &s_manager.entries[s_manager.current_state];
+  ui_text_render_animation(state->title, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
+  ui_layout_render_animation(state->layout, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
 }
 
 /// State manager functions

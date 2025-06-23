@@ -35,6 +35,7 @@ enum LevelResourceType {
   LEVEL_RESOURCE_SOUND_DEATH,
   LEVEL_RESOURCE_SOUND_KEY_COLLECT,
   LEVEL_RESOURCE_SOUND_WIN,
+  LEVEL_RESOURCE_SOUND_FAIL_INPUT,
   
   LEVEL_RESOURCE_SOUND_UI_CLICK,
   LEVEL_RESOURCE_SOUND_UI_NAVIGATE,
@@ -126,10 +127,6 @@ struct Level {
   nikola::ResourceGroupID resource_group;
   nikola::ResourceID resources[LEVEL_RESOURCES_MAX];
 
-  // UI
-
-  UILayout pause_layout;
-
   // State
 
   nikola::Vec3 lerp_points[4];
@@ -172,8 +169,6 @@ void level_update(Level* lvl);
 
 void level_render(Level* lvl);
 
-void level_render_hud(Level* lvl);
-
 void level_render_gui(Level* lvl);
 
 /// Level functions
@@ -185,6 +180,8 @@ void level_render_gui(Level* lvl);
 void level_manager_init(nikola::Window* window);
 
 void level_manager_shutdown();
+
+void level_manager_reset();
 
 void level_manager_advance();
 
