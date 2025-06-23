@@ -258,7 +258,7 @@ void level_manager_advance() {
 
   // We're out of groups...
   s_manager.current_group++; 
-  if(s_manager.current_group >= 1) {
+  if(s_manager.current_group >= LEVEL_GROUPS_MAX) {
     level_load(s_manager.current_level, "levels/C0L0.nklvl");
     game_event_dispatch(GameEvent{
       .type       = GAME_EVENT_STATE_CHANGED, 
