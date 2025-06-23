@@ -130,9 +130,10 @@ static void init_resources(Level* lvl) {
 
   // Models init
 
-  lvl->resources[LEVEL_RESOURCE_CAR]   = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_TRUCK] = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_COIN]  = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_CAR]    = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_TRUCK]  = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_COIN]   = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_CONE] = nikola::resources_push_model(lvl->resource_group, "models/cone.nbrmodel");
  
   // Sounds init
   

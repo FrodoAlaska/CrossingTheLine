@@ -10,9 +10,6 @@
     - Better state code structure
     - Improved credits scene
 
-- Get some assets:
-    - Some 3D model to represent the end point of the level and even the start of the chapter.
-
 ## Fixes 
 
 - The player should not die in the hub world

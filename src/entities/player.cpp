@@ -22,10 +22,10 @@ void player_create(Player* player, Level* lvl, const nikola::Vec3& start_pos) {
   entity_create(&player->entity, 
                 lvl, 
                 start_pos, 
-                nikola::Vec3(1.2f, 3.0f, 1.2f), 
+                nikola::Vec3(1.2f, 3.0f, 1.2f),
                 ENTITY_PLAYER, 
                 nikola::PHYSICS_BODY_KINEMATIC);
-
+  
   // Player variables init
   player->current_footstep_sound = SOUND_TILE_PAVIMENT;
   player->can_move               = true;
@@ -40,7 +40,9 @@ void player_update(Player& player) {
  
   // Apply some gravity if the player is currently not allowed to move
   if(!player.can_move) {
-    nikola::physics_body_set_linear_velocity(player.entity.body, nikola::Vec3(0.0f, -9.81f, 0.0f));
+    nikola::Vec3 current_velocity = nikola::physics_body_get_linear_velocity(player.entity.body);
+    nikola::physics_body_set_linear_velocity(player.entity.body, nikola::Vec3(current_velocity.x, -9.81f, current_velocity.z));
+
     return;
   }
 

@@ -43,8 +43,7 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
 
   // Window init
   app->window = window;
-  //nikola::window_set_fullscreen(window, true);
-  nikola::window_set_position(window, 100, 100);
+  nikola::window_set_fullscreen(window, true);
 
   // GUI init
   nikola::gui_init(window);

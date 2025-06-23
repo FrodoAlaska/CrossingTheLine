@@ -111,8 +111,8 @@ void tile_manager_update() {
 
     tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], 
                 s_tiles.level_ref, 
-                TILE_TUNNEL, 
-                s_tiles.debug_selection);
+                TILE_CONE, 
+                s_tiles.debug_selection + nikola::Vec3(0.0f, 1.5f, 0.0f));
   }
 }
 
@@ -133,6 +133,10 @@ void tile_manager_render() {
       case TILE_ROAD:
         nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
         nikola::renderer_queue_mesh(mesh_id, transform, s_tiles.level_ref->resources[LEVEL_RESOURCE_MATERIAL_ROAD]);
+        break;
+      case TILE_CONE:
+        nikola::transform_scale(transform, nikola::Vec3(4.0f));
+        nikola::renderer_queue_model(s_tiles.level_ref->resources[LEVEL_RESOURCE_CONE], transform);
         break;
     }
   }
@@ -184,7 +188,7 @@ void tile_manager_render_gui() {
 
       // Type
       int type = (int)s_tiles.tiles[i].type;
-      if(ImGui::Combo("Type", &type, "Road\0Paviment\0Railing\0\0")) {
+      if(ImGui::Combo("Type", &type, "Road\0Paviment\0Tunnel\0\0")) {
         s_tiles.tiles[i].type = (TileType)type;
       }
       
