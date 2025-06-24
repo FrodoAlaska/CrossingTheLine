@@ -3,7 +3,7 @@
 - Core mechanic/game loop: 
     - Save progress. Keys collected, levels completed, time played?
     - Save the dialogue in a binary file instead of a text file for the dist build.
-    
+
 - Polish points: 
     - Fog 
     - Better state code structure

@@ -111,14 +111,14 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
 
 static void init_resources(Level* lvl) {
   // Resource group init
-  nikola::FilePath res_path = nikola::filepath_append(nikola::filesystem_current_path(), "res");
-  lvl->resource_group       = nikola::resources_create_group("level_res", res_path);
+  lvl->resource_group = nikola::resources_create_group("level_res", nikola::filesystem_current_path());
 
-  // Textures init
-  nikola::resources_push_dir(lvl->resource_group, "textures");
+  // Resources init
+  nikola::resources_push_dir(lvl->resource_group, "res");
 
   // Skybox init
-  lvl->frame.skybox_id = nikola::resources_push_skybox(lvl->resource_group, "cubemaps/dreamy_sky.nbrcubemap");
+  nikola::ResourceID cubemap_id = nikola::resources_get_id(lvl->resource_group, "dreamy_sky");
+  lvl->frame.skybox_id = nikola::resources_push_skybox(lvl->resource_group, cubemap_id);
 
   // Meshes init
   lvl->resources[LEVEL_RESOURCE_CUBE] = nikola::resources_push_mesh(lvl->resource_group, nikola::GEOMETRY_CUBE);
@@ -130,14 +130,12 @@ static void init_resources(Level* lvl) {
 
   // Models init
 
-  lvl->resources[LEVEL_RESOURCE_CAR]    = nikola::resources_push_model(lvl->resource_group, "models/sedan.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_TRUCK]  = nikola::resources_push_model(lvl->resource_group, "models/delivery.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_COIN]   = nikola::resources_push_model(lvl->resource_group, "models/gold_key.nbrmodel");
-  lvl->resources[LEVEL_RESOURCE_CONE] = nikola::resources_push_model(lvl->resource_group, "models/cone.nbrmodel");
+  lvl->resources[LEVEL_RESOURCE_CAR]   = nikola::resources_get_id(lvl->resource_group, "sedan");
+  lvl->resources[LEVEL_RESOURCE_TRUCK] = nikola::resources_get_id(lvl->resource_group, "delivery");
+  lvl->resources[LEVEL_RESOURCE_COIN]  = nikola::resources_get_id(lvl->resource_group, "gold_key");
+  lvl->resources[LEVEL_RESOURCE_CONE]  = nikola::resources_get_id(lvl->resource_group, "cone");
  
   // Sounds init
-  
-  nikola::resources_push_dir(lvl->resource_group, "audio");
  
   lvl->resources[LEVEL_RESOURCE_SOUND_DEATH]       = nikola::resources_get_id(lvl->resource_group, "sfx_death");
   lvl->resources[LEVEL_RESOURCE_SOUND_KEY_COLLECT] = nikola::resources_get_id(lvl->resource_group, "sfx_key_collect");
@@ -155,7 +153,7 @@ static void init_resources(Level* lvl) {
   lvl->resources[LEVEL_RESOURCE_MUSIC_HUB]      = nikola::resources_get_id(lvl->resource_group, "music_nocturne");
 
   // Font init 
-  lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold");
+  lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(lvl->resource_group, "iosevka_bold");
 }
 
 static void lerp_camera(Level* lvl) {

@@ -1,20 +1,20 @@
-:: TEXTURE @textures 
+:: TEXTURE @res 
 textures 
 
-:: CUBEMAP @cubemaps
+:: CUBEMAP @res
 cubemaps
 
-:: MODEL @models 
+:: MODEL @res 
 $models
 vehicles
 objects
 tiles
 
-:: SHADER @shaders
+:: SHADER @res
 shaders
 
-:: FONT @fonts
+:: FONT @res
 fonts
 
-:: AUDIO @audio 
+:: AUDIO @res 
 audio 

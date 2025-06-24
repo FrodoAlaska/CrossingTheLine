@@ -1,1 +1,1 @@
-nbr -pd res -bd build\res res\resource_list.nbrlist
+nbr -pd res -bd build res\resource_list.nbrlist

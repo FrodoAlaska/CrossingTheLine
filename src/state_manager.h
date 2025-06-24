@@ -20,7 +20,7 @@ enum StateType {
 /// ----------------------------------------------------------------------
 /// State manager functions
 
-void state_manager_init(nikola::Window* window); 
+void state_manager_init(nikola::Window* window, const nikola::ResourceID& font_id); 
 
 void state_manager_update(); 
 

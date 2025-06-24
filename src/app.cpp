@@ -23,9 +23,6 @@ struct nikola::App {
 /// Private functions
 
 static void init_resources(nikola::App* app) {
-  // Font init
-  nikola::resources_push_font(nikola::RESOURCE_CACHE_ID, "fonts/iosevka_bold.nbrfont");
-
   // Shader contexts init
   nikola::ResourceID fog_shader_id = nikola::resources_push_shader(nikola::RESOURCE_CACHE_ID, get_fog_shader());
   nikola::resources_push_shader_context(nikola::RESOURCE_CACHE_ID, fog_shader_id);
@@ -59,10 +56,11 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   level_manager_init(window);
   
   // Dialogue manager init
-  dialogue_manager_init("res/dialogue.txt");
+  dialogue_manager_init("dialogue.txt");
 
   // Sates init
-  state_manager_init(window);
+  Level* current_level = level_manager_get_current_level(); 
+  state_manager_init(window, current_level->resources[LEVEL_RESOURCE_FONT]);
 
   return app;
 }

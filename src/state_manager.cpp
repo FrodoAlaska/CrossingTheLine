@@ -242,10 +242,8 @@ static void init_credits_layout(nikola::Window* window, const nikola::ResourceID
 /// ----------------------------------------------------------------------
 /// State manager functions
 
-void state_manager_init(nikola::Window* window) {
+void state_manager_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   // Layouts init
-
-  nikola::ResourceID font_id = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold");
 
   init_menu_layout(window, font_id);
   init_won_layout(window, font_id);

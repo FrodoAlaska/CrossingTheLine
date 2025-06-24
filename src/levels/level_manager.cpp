@@ -52,6 +52,9 @@ static LevelManager s_manager{};
 /// Private functions
 
 static void init_group_ui(nikola::Window* window) {
+  // Get the main font
+  nikola::ResourceID font_id = s_manager.current_level->resources[LEVEL_RESOURCE_FONT]; 
+
   // Groups init
 
   s_manager.groups[0].name      = "Hub"; 
@@ -71,7 +74,7 @@ static void init_group_ui(nikola::Window* window) {
   UITextDesc text_desc = {
     .string = "GROUP NAME",
 
-    .font_id   = nikola::resources_get_id(nikola::RESOURCE_CACHE_ID, "iosevka_bold"),
+    .font_id   = font_id,
     .font_size = 30.0f,
 
     .anchor = UI_ANCHOR_TOP_CENTER, 
@@ -137,7 +140,7 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
   nikola::Vec4 text_color     = nikola::Vec4(0.0f, 1.0f, 0.0f, s_manager.texts[3].color.a);
   
   if(group->is_locked) {
-    continue_str = "NOT NOW!"; 
+    continue_str = "You're still too weak..."; 
     text_color   = nikola::Vec4(1.0f, 0.0f, 0.0f, text_color.a);
   }
 
