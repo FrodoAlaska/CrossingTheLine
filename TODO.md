@@ -5,6 +5,7 @@
     - Save the dialogue in a binary file instead of a text file for the dist build.
 
 - Polish points: 
+    - Improve the story thingy at the end? Better visualization? Inside a box maybe?
     - Better state code structure
     - Improved credits scene
     - Settings UI (leave this to the end)

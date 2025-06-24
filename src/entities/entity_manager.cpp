@@ -473,7 +473,7 @@ void entity_manager_render_gui() {
 
       // Position 
       nikola::Vec3 position = nikola::physics_body_get_position(vehicle_entt->body);
-      if(ImGui::DragFloat3("Position", &position[0], 0.1f)) {
+      if(ImGui::DragFloat3("Position", &position[0], 8.0f)) {
         nikola::physics_body_set_position(vehicle_entt->body, position);
         vehicle_entt->start_pos = position;
       }
@@ -515,6 +515,10 @@ void entity_manager_render_gui() {
       
     ImGui::SeparatorText("Add options");
 
+    // Type
+    static int type = VEHICLE_CAR;
+    ImGui::Combo("Type", &type, "Car\0Truck\0\0");
+
     // Position
     static nikola::Vec3 position = nikola::Vec3(-16.0f, -1.5f, -32.0f);
     ImGui::DragFloat3("Position", &position[0], 0.1f);
@@ -522,10 +526,10 @@ void entity_manager_render_gui() {
     // Direction
     static nikola::Vec3 dir = nikola::Vec3(0.0f, 0.0f, 1.0f);
     ImGui::DragFloat3("Direction", &dir[0], 0.1f, -1.0f, 1.0f);
-
-    // Type
-    static int type = VEHICLE_CAR;
-    ImGui::Combo("Type", &type, "Car\0Truck\0\0");
+    
+    // Acceleration
+    static float accel = 50.0f;
+    ImGui::DragFloat("Acceleration", &accel, 0.1f);
 
     // Add a vehicle
     if(ImGui::Button("Add vehicle")) {
@@ -535,7 +539,8 @@ void entity_manager_render_gui() {
                      s_entt.level_ref, 
                      (VehicleType)type, 
                      position, 
-                     dir);
+                     dir, 
+                     accel);
     }
   }
 }
