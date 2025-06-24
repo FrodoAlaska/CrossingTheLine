@@ -20,18 +20,6 @@ struct nikola::App {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// Private functions
-
-static void init_resources(nikola::App* app) {
-  // Shader contexts init
-  nikola::ResourceID fog_shader_id = nikola::resources_push_shader(nikola::RESOURCE_CACHE_ID, get_fog_shader());
-  nikola::resources_push_shader_context(nikola::RESOURCE_CACHE_ID, fog_shader_id);
-}
-
-/// Private functions
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// App functions 
 
 nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
@@ -45,10 +33,7 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   // GUI init
   nikola::gui_init(window);
 
-  // Resources init
-  init_resources(app);
-
-  // @TODO: This might be useless, but it's just for testing purposes
+  // Set some much needed physics settings
   nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
   nikola::physics_world_set_iterations_count(5);
 

@@ -10,8 +10,8 @@ vehicles
 objects
 tiles
 
-:: SHADER @res
-shaders
+# :: SHADER @res
+# shaders
 
 :: FONT @res
 fonts

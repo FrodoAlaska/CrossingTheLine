@@ -5,9 +5,9 @@
     - Save the dialogue in a binary file instead of a text file for the dist build.
 
 - Polish points: 
-    - Fog 
     - Better state code structure
     - Improved credits scene
+    - Settings UI (leave this to the end)
 
 ## Fixes 
 
