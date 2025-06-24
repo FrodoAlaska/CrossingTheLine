@@ -188,7 +188,7 @@ void tile_manager_render_gui() {
 
       // Type
       int type = (int)s_tiles.tiles[i].type;
-      if(ImGui::Combo("Type", &type, "Road\0Paviment\0Tunnel\0\0")) {
+      if(ImGui::Combo("Type", &type, "Road\0Paviment\0Cone\0\0")) {
         s_tiles.tiles[i].type = (TileType)type;
       }
       

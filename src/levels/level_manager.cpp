@@ -155,9 +155,12 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
     });
   }
   else {
+    // Reset the group levels
+    group->current_level = 0;
+
+    // Loading the new level
     level_unload(s_manager.current_level);
     level_load(s_manager.current_level, group->level_paths[group->current_level]);
-    level_reset(s_manager.current_level);
      
     game_event_dispatch(GameEvent{
       .type       = GAME_EVENT_STATE_CHANGED, 
@@ -273,7 +276,7 @@ void level_manager_advance() {
 
   LevelGroup* prev_group = level_group; 
   level_group            = &s_manager.groups[s_manager.current_group];
-  level_group->is_locked = (level_group->coins_collected < level_group->level_paths.size());
+  level_group->is_locked = (prev_group->coins_collected < prev_group->level_paths.size());
  
   // To the hub world!
   level_load(s_manager.current_level, "levels/C0L0.nklvl");
@@ -314,6 +317,30 @@ void level_manager_render_gui() {
 
   // Level select
   nikola::gui_begin_panel("Level select"); 
+  for(nikola::sizei i = 0; i < LEVEL_GROUPS_MAX; i++) {
+    if(!ImGui::CollapsingHeader(s_manager.groups[i].name.c_str())) {
+      continue;
+    } 
+
+    static nikola::String current_level_name = "C0L0.nklvl";
+    if(!ImGui::BeginCombo("Level", current_level_name.c_str())) {
+      continue; 
+    }
+
+    for(auto& path : s_manager.groups[i].level_paths) {
+      if(ImGui::Selectable(nikola::filepath_filename(path).c_str())) {
+        level_unload(s_manager.current_level);
+        if(!level_load(s_manager.current_level, path)) {
+          continue;
+        }
+        
+        level_reset(s_manager.current_level);
+        current_level_name = nikola::filepath_filename(path); 
+      }
+    }
+     
+    ImGui::EndCombo();
+  }
   nikola::gui_end_panel(); 
 }
 

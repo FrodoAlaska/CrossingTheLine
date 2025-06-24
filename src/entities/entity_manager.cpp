@@ -301,11 +301,17 @@ void entity_manager_render() {
   
   for(auto& v : s_entt.vehicles) {
     transform = nikola::physics_body_get_transform(v.entity.body);
-    nikola::transform_scale(transform, nikola::Vec3(4.0f));
 
-    // @TODO: There's probably a better way to do this...
-    nikola::sizei res_index = (v.type == VEHICLE_CAR) ? LEVEL_RESOURCE_CAR : LEVEL_RESOURCE_TRUCK;
-    nikola::renderer_queue_model(s_entt.level_ref->resources[res_index], transform);
+    switch(v.type) {
+      case VEHICLE_CAR:
+        nikola::transform_scale(transform, nikola::Vec3(4.0f));
+        nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_CAR], transform);
+        break;
+      case VEHICLE_TRUCK:
+        nikola::transform_scale(transform, nikola::Vec3(6.0f));
+        nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_TRUCK], transform);
+        break;
+    }
 
     if(s_entt.level_ref->debug_mode) {
       nikola::renderer_debug_collider(v.entity.collider, nikola::Vec3(1.0f, 0.0f, 0.0f));

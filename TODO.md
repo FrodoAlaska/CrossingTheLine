@@ -6,7 +6,6 @@
     
 - Polish points: 
     - Fog 
-    - Particles
     - Better state code structure
     - Improved credits scene
 
