@@ -16,4 +16,4 @@
 
 # Road To The End 
 
-- Design, create, and test Chapter 2 
+- Playtest Chapter 2 

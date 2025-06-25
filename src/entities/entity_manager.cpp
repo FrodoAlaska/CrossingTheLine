@@ -170,16 +170,6 @@ void entity_manager_load() {
                   true);
   }
 
-  // Death point init
-  s_entt.points.push_back(Entity{}); 
-  entity_create(&s_entt.points[s_entt.points.size() - 1], 
-                s_entt.level_ref, 
-                nikola::Vec3(-8.0f, -16.0f, 8.0f),
-                nikola::Vec3(128.0f, 1.0f, 128.0f),
-                ENTITY_DEATH_POINT,
-                nikola::PHYSICS_BODY_STATIC, 
-                true);
-
   // Vehicles init
   
   s_entt.vehicles.resize(nklvl->vehicles_count);
@@ -211,7 +201,7 @@ void entity_manager_save() {
 
   // Save the end points
 
-  nklvl->points_count = s_entt.points.size() - 1; // @NOTE: Skip the death point at the end
+  nklvl->points_count = s_entt.points.size();
   for(nikola::sizei i = 0; i < s_entt.points.size(); i++) {
     Entity* point = &s_entt.points[i];
 
