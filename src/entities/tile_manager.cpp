@@ -1,6 +1,7 @@
 #include "entity.h"
 #include "levels/level.h"
 #include "sound_manager.h"
+#include "resource_database.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -117,7 +118,7 @@ void tile_manager_process_input() {
 }
 
 void tile_manager_render() {
-  nikola::ResourceID mesh_id  = s_tiles.level_ref->resources[LEVEL_RESOURCE_CUBE];
+  nikola::ResourceID mesh_id  = resource_database_get(RESOURCE_CUBE);
   nikola::Transform transform = {}; 
 
   // Render tiles
@@ -128,15 +129,15 @@ void tile_manager_render() {
     switch(tile.type) {
       case TILE_PAVIMENT:
         nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
-        nikola::renderer_queue_mesh(mesh_id, transform, s_tiles.level_ref->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT]);
+        nikola::renderer_queue_mesh(mesh_id, transform, resource_database_get(RESOURCE_MATERIAL_PAVIMENT));
         break;
       case TILE_ROAD:
         nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
-        nikola::renderer_queue_mesh(mesh_id, transform, s_tiles.level_ref->resources[LEVEL_RESOURCE_MATERIAL_ROAD]);
+        nikola::renderer_queue_mesh(mesh_id, transform, resource_database_get(RESOURCE_MATERIAL_ROAD));
         break;
       case TILE_CONE:
         nikola::transform_scale(transform, nikola::Vec3(4.0f));
-        nikola::renderer_queue_model(s_tiles.level_ref->resources[LEVEL_RESOURCE_CONE], transform);
+        nikola::renderer_queue_model(resource_database_get(RESOURCE_CONE), transform);
         break;
     }
   }

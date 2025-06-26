@@ -1,16 +1,17 @@
 #include "sound_manager.h"
 #include "levels/level.h"
 #include "entities/entity.h"
+#include "states/state.h"
+#include "resource_database.h"
 #include "game_event.h"
-#include "state_manager.h"
 
 #include <nikola/nikola.h>
 
 /// ----------------------------------------------------------------------
 /// SoundManager
 struct SoundManager {
-  Level* level_ref;
   nikola::AudioSourceID entries[SOUNDS_MAX];
+  nikola::sizei current_music = SOUND_AMBIANCE;
 };
 
 static SoundManager s_manager;
@@ -27,8 +28,10 @@ static void on_sound_play(const GameEvent& event, void* dispatcher, void* listen
     case GAME_EVENT_SOUND_PLAYED:
       nikola::audio_source_start(s_manager.entries[event.sound_type]);
       break;
-    case GAME_EVENT_COIN_COLLECTED:
-      nikola::audio_source_start(s_manager.entries[SOUND_KEY_COLLECT]);
+    case GAME_EVENT_MUSIC_PLAYED:
+      nikola::audio_source_stop(s_manager.entries[s_manager.current_music]);
+      nikola::audio_source_start(s_manager.entries[event.sound_type]);
+      s_manager.current_music = event.sound_type;
       break;
     default:
       break;
@@ -37,14 +40,6 @@ static void on_sound_play(const GameEvent& event, void* dispatcher, void* listen
 
 static void on_state_change(const GameEvent& event, void* dispatcher, void* listener) {
   switch(event.state_type) {
-    case STATE_HUB:
-      nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
-      nikola::audio_source_start(s_manager.entries[SOUND_HUB]);
-      break;
-    case STATE_LEVEL:
-      nikola::audio_source_stop(s_manager.entries[SOUND_HUB]);
-      nikola::audio_source_start(s_manager.entries[SOUND_AMBIANCE]);
-      break;
     case STATE_WON:
       nikola::audio_source_stop(s_manager.entries[SOUND_AMBIANCE]);
       nikola::audio_source_start(s_manager.entries[SOUND_WIN]);
@@ -56,8 +51,6 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
     default:
       break;
   }
-
-  nikola::audio_source_start(s_manager.entries[SOUND_UI_TRANSITION]);
 }
 
 /// Callbacks
@@ -66,16 +59,15 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
 /// ----------------------------------------------------------------------
 /// Sound manager functions 
 
-void sound_manager_init(Level* lvl) {
-  // Level ref init
-  s_manager.level_ref = lvl;
-
+void sound_manager_init() {
   // Audio sources init
   for(nikola::sizei i = 0; i < SOUNDS_MAX; i++) {
+    ResourceType res_type = (ResourceType)((nikola::sizei)(RESOURCE_SOUND_DEATH + i));
+
     nikola::AudioSourceDesc audio_desc; 
     audio_desc.volume        = 0.5f; 
     audio_desc.buffers_count = 1; 
-    audio_desc.buffers[0]    = nikola::resources_get_audio_buffer(lvl->resources[LEVEL_RESOURCE_SOUND_DEATH + i]);
+    audio_desc.buffers[0]    = nikola::resources_get_audio_buffer(resource_database_get(res_type));
 
     s_manager.entries[i] = nikola::audio_source_create(audio_desc); 
   }
@@ -86,7 +78,7 @@ void sound_manager_init(Level* lvl) {
 
   // Listen to events
   game_event_listen(GAME_EVENT_SOUND_PLAYED, on_sound_play);
-  game_event_listen(GAME_EVENT_COIN_COLLECTED, on_sound_play);
+  game_event_listen(GAME_EVENT_MUSIC_PLAYED, on_sound_play);
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
 
   NIKOLA_LOG_DEBUG("Initialized sound manager");

@@ -50,9 +50,14 @@ set(PROJECT_SOURCES
   ${PROJECT_SRC_DIR}/main.cpp
   ${PROJECT_SRC_DIR}/game_event.cpp
   ${PROJECT_SRC_DIR}/sound_manager.cpp
-  ${PROJECT_SRC_DIR}/state_manager.cpp
-  ${PROJECT_SRC_DIR}/dialogue_manager.cpp
   ${PROJECT_SRC_DIR}/input_manager.cpp
+  ${PROJECT_SRC_DIR}/resource_database.cpp
+
+  # States
+  ${PROJECT_SRC_DIR}/states/menu_state.cpp
+  ${PROJECT_SRC_DIR}/states/won_state.cpp
+  ${PROJECT_SRC_DIR}/states/lost_state.cpp
+  ${PROJECT_SRC_DIR}/states/credits_state.cpp
 
   # Entities
   ${PROJECT_SRC_DIR}/entities/entity.cpp

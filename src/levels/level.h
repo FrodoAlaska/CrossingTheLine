@@ -21,41 +21,6 @@ const nikola::sizei VEHICLES_MAX = 12;
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// LevelResourceType
-enum LevelResourceType {
-  LEVEL_RESOURCE_CUBE = 0,
-
-  LEVEL_RESOURCE_MATERIAL_PAVIMENT,
-  LEVEL_RESOURCE_MATERIAL_ROAD,
-
-  LEVEL_RESOURCE_CAR,
-  LEVEL_RESOURCE_TRUCK,
-  LEVEL_RESOURCE_COIN,
-  LEVEL_RESOURCE_CONE,
-
-  LEVEL_RESOURCE_SOUND_DEATH,
-  LEVEL_RESOURCE_SOUND_KEY_COLLECT,
-  LEVEL_RESOURCE_SOUND_WIN,
-  LEVEL_RESOURCE_SOUND_FAIL_INPUT,
-  
-  LEVEL_RESOURCE_SOUND_UI_CLICK,
-  LEVEL_RESOURCE_SOUND_UI_NAVIGATE,
-  LEVEL_RESOURCE_SOUND_UI_TRANSITION,
-
-  LEVEL_RESOURCE_SOUND_TILE_ROAD, 
-  LEVEL_RESOURCE_SOUND_TILE_PAVIMENT, 
-
-  LEVEL_RESOURCE_MUSIC_AMBIANCE,
-  LEVEL_RESOURCE_MUSIC_HUB,
-
-  LEVEL_RESOURCE_FONT,
-
-  LEVEL_RESOURCES_MAX = LEVEL_RESOURCE_FONT + 1,
-};
-/// LevelResourceType
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// NKLevelFile
 struct NKLevelFile {
   nikola::FilePath path;
@@ -122,11 +87,6 @@ struct Level {
   nikola::Camera gui_camera;
   nikola::Camera* current_camera;
   nikola::FrameData frame; 
-  
-  // Resources
-
-  nikola::ResourceGroupID resource_group;
-  nikola::ResourceID resources[LEVEL_RESOURCES_MAX];
 
   // State
 
@@ -183,7 +143,7 @@ void level_render_gui(Level* lvl);
 /// ----------------------------------------------------------------------
 /// Level manager functions
 
-void level_manager_init(nikola::Window* window);
+void level_manager_init(nikola::Window* window, const nikola::ResourceID& font_id);
 
 void level_manager_shutdown();
 

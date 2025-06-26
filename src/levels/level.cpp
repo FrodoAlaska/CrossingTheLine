@@ -1,9 +1,9 @@
 #include "level.h"
+#include "states/state.h"
 #include "game_event.h"
-#include "fog_shader.h"
 #include "sound_manager.h"
-#include "state_manager.h"
 #include "input_manager.h"
+#include "resource_database.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -90,7 +90,6 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
   
   switch(event.state_type) {
     case STATE_LEVEL:
-    case STATE_HUB:
       lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_START];
       break;
     case STATE_WON:
@@ -109,53 +108,6 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
 
 /// ----------------------------------------------------------------------
 /// Private functions
-
-static void init_resources(Level* lvl) {
-  // Resource group init
-  lvl->resource_group = nikola::resources_create_group("level_res", nikola::filesystem_current_path());
-
-  // Resources init
-  nikola::resources_push_dir(lvl->resource_group, "res");
-
-  // Skybox init
-  nikola::ResourceID cubemap_id = nikola::resources_get_id(lvl->resource_group, "dreamy_sky");
-  lvl->frame.skybox_id = nikola::resources_push_skybox(lvl->resource_group, cubemap_id);
-
-  // Meshes init
-  lvl->resources[LEVEL_RESOURCE_CUBE] = nikola::resources_push_mesh(lvl->resource_group, nikola::GEOMETRY_CUBE);
-
-  // Materials init
-  
-  lvl->resources[LEVEL_RESOURCE_MATERIAL_PAVIMENT] = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "paviment"));
-  lvl->resources[LEVEL_RESOURCE_MATERIAL_ROAD]     = nikola::resources_push_material(lvl->resource_group, nikola::resources_get_id(lvl->resource_group, "road"));
-
-  // Models init
-
-  lvl->resources[LEVEL_RESOURCE_CAR]   = nikola::resources_get_id(lvl->resource_group, "sedan");
-  lvl->resources[LEVEL_RESOURCE_TRUCK] = nikola::resources_get_id(lvl->resource_group, "delivery");
-  lvl->resources[LEVEL_RESOURCE_COIN]  = nikola::resources_get_id(lvl->resource_group, "gold_key");
-  lvl->resources[LEVEL_RESOURCE_CONE]  = nikola::resources_get_id(lvl->resource_group, "cone");
- 
-  // Sounds init
- 
-  lvl->resources[LEVEL_RESOURCE_SOUND_DEATH]       = nikola::resources_get_id(lvl->resource_group, "sfx_death");
-  lvl->resources[LEVEL_RESOURCE_SOUND_KEY_COLLECT] = nikola::resources_get_id(lvl->resource_group, "sfx_key_collect");
-  lvl->resources[LEVEL_RESOURCE_SOUND_WIN]         = nikola::resources_get_id(lvl->resource_group, "sfx_win");
-  lvl->resources[LEVEL_RESOURCE_SOUND_FAIL_INPUT]  = nikola::resources_get_id(lvl->resource_group, "sfx_fail_input");
-  
-  lvl->resources[LEVEL_RESOURCE_SOUND_UI_CLICK]      = nikola::resources_get_id(lvl->resource_group, "sfx_ui_click");
-  lvl->resources[LEVEL_RESOURCE_SOUND_UI_NAVIGATE]   = nikola::resources_get_id(lvl->resource_group, "sfx_ui_navigate");
-  lvl->resources[LEVEL_RESOURCE_SOUND_UI_TRANSITION] = nikola::resources_get_id(lvl->resource_group, "sfx_transition");
-  
-  lvl->resources[LEVEL_RESOURCE_SOUND_TILE_ROAD]     = nikola::resources_get_id(lvl->resource_group, "sfx_road");
-  lvl->resources[LEVEL_RESOURCE_SOUND_TILE_PAVIMENT] = nikola::resources_get_id(lvl->resource_group, "sfx_paviment");
-  
-  lvl->resources[LEVEL_RESOURCE_MUSIC_AMBIANCE] = nikola::resources_get_id(lvl->resource_group, "music_ambiance");
-  lvl->resources[LEVEL_RESOURCE_MUSIC_HUB]      = nikola::resources_get_id(lvl->resource_group, "music_nocturne");
-
-  // Font init 
-  lvl->resources[LEVEL_RESOURCE_FONT] = nikola::resources_get_id(lvl->resource_group, "iosevka_bold");
-}
 
 static void lerp_camera(Level* lvl) {
   nikola::Camera* camera = &lvl->main_camera;
@@ -203,7 +155,7 @@ Level* level_create(nikola::Window* window) {
   lvl->gui_camera.far      = 500.0f;
   lvl->gui_camera.yaw      = 0.0f;
   lvl->gui_camera.pitch    = -48.5f;
- 
+
   // Listen to events
   nikola::event_listen(nikola::EVENT_MOUSE_SCROLL_WHEEL, mouse_scroll_event, &lvl->gui_camera);
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed, lvl);
@@ -212,14 +164,14 @@ Level* level_create(nikola::Window* window) {
   lvl->frame.camera   = lvl->main_camera;
   lvl->current_camera = &lvl->main_camera;
 
-  // Resource init
-  init_resources(lvl);
+  // Skybox init
+  lvl->frame.skybox_id = resource_database_get(RESOURCE_SKYBOX);
 
   // UI init
   UITextDesc text_desc = {
     .string = "PAUSED", 
 
-    .font_id   = lvl->resources[LEVEL_RESOURCE_FONT],
+    .font_id   = resource_database_get(RESOURCE_FONT),
     .font_size = 80.0f, 
 
     .anchor = UI_ANCHOR_CENTER, 
@@ -267,8 +219,6 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
 
 void level_destroy(Level* lvl) {
   NIKOLA_ASSERT(lvl, "Invalid level given to level_destroy");
-
-  nikola::resources_destroy_group(lvl->resource_group);
   delete lvl;
 }
 
@@ -336,13 +286,10 @@ void level_render_hud(Level* lvl) {
     return;
   }
 
-  ui_text_render_animation(lvl->pause_text, UI_TEXT_ANIMATION_BLINK, 10.0f);
+  ui_text_render_animation(lvl->pause_text, UI_TEXT_ANIMATION_BLINK, 8.0f);
 }
 
 void level_render(Level* lvl) {
-  nikola::ResourceID mesh_id  = lvl->resources[LEVEL_RESOURCE_CUBE];
-  nikola::Transform transform = {};
-
   // Render entities
   entity_manager_render();
 

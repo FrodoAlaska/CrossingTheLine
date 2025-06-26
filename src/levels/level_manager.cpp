@@ -1,8 +1,8 @@
 #include "level.h"
+#include "states/state.h"
 #include "game_event.h"
 #include "ui/ui.h"
 #include "sound_manager.h"
-#include "state_manager.h"
 #include "input_manager.h"
 
 #include <nikola/nikola.h>
@@ -52,10 +52,7 @@ static LevelManager s_manager{};
 /// ----------------------------------------------------------------------
 /// Private functions
 
-static void init_group_ui(nikola::Window* window) {
-  // Get the main font
-  nikola::ResourceID font_id = s_manager.current_level->resources[LEVEL_RESOURCE_FONT]; 
-
+static void init_group_ui(nikola::Window* window, const nikola::ResourceID& font_id) {
   // Groups init
 
   s_manager.groups[0].name      = "Hub"; 
@@ -159,7 +156,15 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
   if(event.state_type != STATE_LEVEL) {
     return;
   }
-  
+
+  // Play some cool music
+  GameEvent music_event = {
+    .type       = GAME_EVENT_MUSIC_PLAYED, 
+    .sound_type = (s_manager.current_group == 1) ? SOUND_HUB : SOUND_AMBIANCE  
+  };
+  game_event_dispatch(music_event);
+ 
+  // Reset the level before switching
   level_reset(s_manager.current_level);
 }
 
@@ -184,11 +189,10 @@ static void level_directory_iterate_func(const nikola::FilePath& base_dir, const
 /// Callbacks
 /// ----------------------------------------------------------------------
 
-
 /// ----------------------------------------------------------------------
 /// Level manager functions
 
-void level_manager_init(nikola::Window* window) {
+void level_manager_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   // Level init
   s_manager.current_level = level_create(window);
 
@@ -200,10 +204,7 @@ void level_manager_init(nikola::Window* window) {
   level_load(s_manager.current_level, s_manager.groups[0].level_paths[0]);
 
   // Init UI
-  init_group_ui(window);
-
-  // Sounds init
-  sound_manager_init(s_manager.current_level);
+  init_group_ui(window, font_id);
 
   // Listen to events
   game_event_listen(GAME_EVENT_CHAPTER_CHANGED, on_chapter_changed);
@@ -216,6 +217,10 @@ void level_manager_shutdown() {
   
   level_unload(s_manager.current_level);
   level_destroy(s_manager.current_level);
+}
+
+void level_manager_reset() {
+  s_manager.current_group = 1;
 }
 
 void level_manager_advance() {
@@ -239,7 +244,7 @@ void level_manager_advance() {
   // We're out of groups...
   s_manager.current_group++; 
   if(s_manager.current_group >= LEVEL_GROUPS_MAX) {
-    level_load(s_manager.current_level, "levels/C0L0.nklvl");
+    level_load(s_manager.current_level, s_manager.groups[0].level_paths[0]);
     game_event_dispatch(GameEvent{
       .type       = GAME_EVENT_STATE_CHANGED, 
       .state_type = STATE_CREDITS
@@ -256,15 +261,11 @@ void level_manager_advance() {
   level_group->is_locked = (prev_group->coins_collected < prev_group->level_paths.size());
  
   // To the hub world!
-  level_load(s_manager.current_level, "levels/C0L0.nklvl");
+  level_load(s_manager.current_level, s_manager.groups[0].level_paths[0]);
   game_event_dispatch(GameEvent{
     .type       = GAME_EVENT_STATE_CHANGED, 
-    .state_type = STATE_HUB
+    .state_type = STATE_LEVEL
   });
-}
-
-void level_manager_reset() {
-  s_manager.current_group = 1;
 }
 
 void level_manager_process_input() {

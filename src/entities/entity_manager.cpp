@@ -1,7 +1,9 @@
 #include "entity.h"
 #include "levels/level.h"
+#include "states/state.h"
 #include "game_event.h"
-#include "state_manager.h"
+#include "resource_database.h"
+#include "sound_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -42,7 +44,12 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
     case ENTITY_COIN:
       other->is_active = false; 
       nikola::physics_body_set_awake(other->body, false);
+
       game_event_dispatch(GameEvent{.type = GAME_EVENT_COIN_COLLECTED});
+      game_event_dispatch(GameEvent{
+        .type       = GAME_EVENT_SOUND_PLAYED, 
+        .sound_type = SOUND_KEY_COLLECT,
+      });
       break;
     default: 
       break;
@@ -295,11 +302,11 @@ void entity_manager_render() {
     switch(v.type) {
       case VEHICLE_CAR:
         nikola::transform_scale(transform, nikola::Vec3(4.0f));
-        nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_CAR], transform);
+        nikola::renderer_queue_model(resource_database_get(RESOURCE_CAR), transform);
         break;
       case VEHICLE_TRUCK:
         nikola::transform_scale(transform, nikola::Vec3(6.0f));
-        nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_TRUCK], transform);
+        nikola::renderer_queue_model(resource_database_get(RESOURCE_TRUCK), transform);
         break;
     }
 
@@ -314,14 +321,14 @@ void entity_manager_render() {
     transform = nikola::physics_body_get_transform(s_entt.coin.body);
     
     nikola::transform_scale(transform, nikola::Vec3(0.02f));
-    nikola::renderer_queue_model(s_entt.level_ref->resources[LEVEL_RESOURCE_COIN], transform);
+    nikola::renderer_queue_model(resource_database_get(RESOURCE_COIN), transform);
   }
 
   // Render the player 
  
   transform = nikola::physics_body_get_transform(s_entt.player.entity.body);
   nikola::transform_scale(transform, nikola::collider_get_extents(s_entt.player.entity.collider));
-  nikola::renderer_queue_mesh(s_entt.level_ref->resources[LEVEL_RESOURCE_CUBE], transform);
+  nikola::renderer_queue_mesh(resource_database_get(RESOURCE_CUBE), transform);
 
   // Debug rendering
   

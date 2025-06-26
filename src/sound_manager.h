@@ -1,7 +1,5 @@
 #pragma once
 
-#include "levels/level.h"
-
 #include <nikola/nikola.h>
 
 /// ----------------------------------------------------------------------
@@ -30,7 +28,7 @@ enum SoundType {
 /// ----------------------------------------------------------------------
 /// Sound manager functions 
 
-void sound_manager_init(Level* lvl);
+void sound_manager_init();
 
 void sound_manager_shutdown();
 
