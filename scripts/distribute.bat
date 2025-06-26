@@ -1,5 +1,6 @@
 pushd build 
 
+cmake .. -DDISTRIBUTION_BUILD=1
 cmake --build . --config Release --parallel 12 
 xcopy Release\game.exe /f .\
 

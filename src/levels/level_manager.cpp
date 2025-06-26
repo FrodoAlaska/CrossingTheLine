@@ -38,6 +38,7 @@ struct LevelManager {
   Level* current_level = nullptr;
 
   LevelGroup groups[LEVEL_GROUPS_MAX];
+  LevelGroup* selected_group  = nullptr;
   nikola::sizei current_group = 1;
   
   UIText texts[GROUP_TEXTS_MAX];
@@ -120,12 +121,9 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
     return;
   }
 
-  // Enable the hud for the specific group
-  s_manager.can_show_hud = true;
-  
-  Entity* point_entt  = (Entity*)dispatcher;
-  nikola::sizei index = get_index_from_pos(point_entt);
-  LevelGroup* group   = &s_manager.groups[index];
+  Entity* point_entt       = (Entity*)dispatcher;
+  s_manager.selected_group = &s_manager.groups[get_index_from_pos(point_entt)];
+  LevelGroup* group        = s_manager.selected_group;
 
   // Set up the UI
   ui_text_set_string(s_manager.texts[0], group->name);
@@ -146,30 +144,6 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
 
   s_manager.texts[3].color = text_color;
   ui_text_set_string(s_manager.texts[3], continue_str);
-
-  if(!input_manager_action_pressed(INPUT_ACTION_ACCEPT)) {
-    return;
-  }
-
-  if(group->is_locked) {
-    game_event_dispatch(GameEvent{
-      .type       = GAME_EVENT_SOUND_PLAYED, 
-      .sound_type = SOUND_FAIL_INPUT,
-    });
-  }
-  else {
-    // Reset the group levels
-    group->current_level = 0;
-
-    // Loading the new level
-    level_unload(s_manager.current_level);
-    level_load(s_manager.current_level, group->level_paths[group->current_level]);
-     
-    game_event_dispatch(GameEvent{
-      .type       = GAME_EVENT_STATE_CHANGED, 
-      .state_type = STATE_LEVEL
-    });
-  }
 }
 
 static void on_coin_collected(const GameEvent& event, void* dispatcher, void* listener) {
@@ -293,6 +267,40 @@ void level_manager_reset() {
   s_manager.current_group = 1;
 }
 
+void level_manager_process_input() {
+  // Level input
+  level_process_input(s_manager.current_level);
+  
+  if(!input_manager_action_pressed(INPUT_ACTION_ACCEPT)) {
+    return;
+  }
+
+  LevelGroup* group = s_manager.selected_group;
+  if(!group) {
+    return;
+  }
+
+  if(group->is_locked) {
+    game_event_dispatch(GameEvent{
+      .type       = GAME_EVENT_SOUND_PLAYED, 
+      .sound_type = SOUND_FAIL_INPUT,
+    });
+  }
+  else {
+    // Reset the group levels
+    group->current_level = 0;
+
+    // Loading the new level
+    level_unload(s_manager.current_level);
+    level_load(s_manager.current_level, group->level_paths[group->current_level]);
+     
+    game_event_dispatch(GameEvent{
+      .type       = GAME_EVENT_STATE_CHANGED, 
+      .state_type = STATE_LEVEL
+    });
+  }
+}
+
 void level_manager_update() {
   level_update(s_manager.current_level);
 }
@@ -302,12 +310,13 @@ void level_manager_render() {
 }
 
 void level_manager_render_hud() {
-  UITextAnimation anim_type = s_manager.can_show_hud ? UI_TEXT_ANIMATION_FADE_IN : UI_TEXT_ANIMATION_FADE_OUT;
+  UITextAnimation anim_type = s_manager.selected_group ? UI_TEXT_ANIMATION_FADE_IN : UI_TEXT_ANIMATION_FADE_OUT;
   for(nikola::sizei i = 0; i < GROUP_TEXTS_MAX; i++) {
     ui_text_render_animation(s_manager.texts[i], anim_type, 5.0f);
   }
 
-  s_manager.can_show_hud = false;
+  level_render_hud(s_manager.current_level);
+  s_manager.selected_group = nullptr;
 }
 
 void level_manager_render_gui() {

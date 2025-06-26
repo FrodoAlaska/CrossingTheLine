@@ -185,7 +185,7 @@ void tile_manager_load();
 
 void tile_manager_save();
 
-void tile_manager_update();
+void tile_manager_process_input();
 
 void tile_manager_render();
 

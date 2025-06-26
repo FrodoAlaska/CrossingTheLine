@@ -73,7 +73,7 @@ void sound_manager_init(Level* lvl) {
   // Audio sources init
   for(nikola::sizei i = 0; i < SOUNDS_MAX; i++) {
     nikola::AudioSourceDesc audio_desc; 
-    audio_desc.volume        = 0.4f; 
+    audio_desc.volume        = 0.5f; 
     audio_desc.buffers_count = 1; 
     audio_desc.buffers[0]    = nikola::resources_get_audio_buffer(lvl->resources[LEVEL_RESOURCE_SOUND_DEATH + i]);
 

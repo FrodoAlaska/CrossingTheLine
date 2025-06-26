@@ -10,6 +10,8 @@ static const bool get_key_action_pressed(const InputAction action) {
   switch(action) {
     case INPUT_ACTION_ACCEPT:
       return nikola::input_key_pressed(nikola::KEY_ENTER);
+    case INPUT_ACTION_PAUSE:
+      return nikola::input_key_pressed(nikola::KEY_P);
     case INPUT_ACTION_NAVIGATE_UP:
       return nikola::input_key_pressed(nikola::KEY_UP) || nikola::input_key_pressed(nikola::KEY_W);
     case INPUT_ACTION_NAVIGATE_DOWN:
@@ -25,6 +27,8 @@ static const bool get_gamepad_action_pressed(const InputAction action) {
   switch(action) {
     case INPUT_ACTION_ACCEPT:
       return nikola::input_gamepad_button_pressed(nikola::JOYSTICK_ID_0, nikola::GAMEPAD_BUTTON_CROSS);
+    case INPUT_ACTION_PAUSE:
+      return nikola::input_gamepad_button_pressed(nikola::JOYSTICK_ID_0, nikola::GAMEPAD_BUTTON_START);
     case INPUT_ACTION_NAVIGATE_UP:
       return nikola::input_gamepad_button_pressed(nikola::JOYSTICK_ID_0, nikola::GAMEPAD_BUTTON_DPAD_UP);
     case INPUT_ACTION_NAVIGATE_DOWN:

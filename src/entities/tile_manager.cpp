@@ -70,7 +70,7 @@ void tile_manager_save() {
   }
 }
 
-void tile_manager_update() {
+void tile_manager_process_input() {
   // @TODO: Please no. It works, but please no. It's SO bad-looking. 
 
   float step = TILE_SIZE;

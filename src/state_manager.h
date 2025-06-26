@@ -22,6 +22,8 @@ enum StateType {
 
 void state_manager_init(nikola::Window* window, const nikola::ResourceID& font_id); 
 
+const StateType state_manager_get_current_state();
+
 void state_manager_update(); 
 
 void state_manager_render_hud();

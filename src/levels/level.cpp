@@ -3,6 +3,7 @@
 #include "fog_shader.h"
 #include "sound_manager.h"
 #include "state_manager.h"
+#include "input_manager.h"
 
 #include <nikola/nikola.h>
 #include <imgui/imgui.h>
@@ -213,7 +214,19 @@ Level* level_create(nikola::Window* window) {
 
   // Resource init
   init_resources(lvl);
- 
+
+  // UI init
+  UITextDesc text_desc = {
+    .string = "PAUSED", 
+
+    .font_id   = lvl->resources[LEVEL_RESOURCE_FONT],
+    .font_size = 80.0f, 
+
+    .anchor = UI_ANCHOR_CENTER, 
+    .color  = nikola::Vec4(1.0f),
+  };
+  ui_text_create(&lvl->pause_text, window, text_desc);
+
   // Entity manager init
   entity_manager_create(lvl);
 
@@ -277,11 +290,9 @@ void level_reset(Level* lvl) {
   entity_manager_reset();
 }
 
-void level_update(Level* lvl) {
-  // Take input
-  
+void level_process_input(Level* lvl) {
   // Disable/enable the GUI
-#if NIKOLA_BUILD_DEBUG == 1
+#if DISTRIBUTION_BUILD == 0
   if(nikola::input_key_pressed(nikola::KEY_F1)) {
     lvl->has_editor       = !lvl->has_editor;
     lvl->debug_mode       = lvl->has_editor;
@@ -291,16 +302,26 @@ void level_update(Level* lvl) {
     nikola::input_cursor_show(lvl->has_editor);
   }
 #endif
- 
-  // Update state
 
-  // Keep lerping the camera which is honestly a bad idea
-  lerp_camera(lvl);
+  // Pause level
+  if(input_manager_action_pressed(INPUT_ACTION_PAUSE)) {
+    lvl->is_paused = !lvl->is_paused;
+    nikola::physics_world_set_paused(lvl->is_paused);
+  }
 
   // Update tiles
   if(lvl->has_editor) {
-    tile_manager_update();
+    tile_manager_process_input();
   }
+}
+
+void level_update(Level* lvl) {
+  if(lvl->is_paused) {
+    return;
+  }
+
+  // Keep lerping the camera which is honestly a bad idea
+  lerp_camera(lvl);
 
   // Update entities
   entity_manager_update();
@@ -308,6 +329,14 @@ void level_update(Level* lvl) {
   // Camera update
   lvl->frame.camera = *lvl->current_camera;
   nikola::camera_update(*lvl->current_camera);
+}
+
+void level_render_hud(Level* lvl) {
+  if(!lvl->is_paused) {
+    return;
+  }
+
+  ui_text_render_animation(lvl->pause_text, UI_TEXT_ANIMATION_BLINK, 10.0f);
 }
 
 void level_render(Level* lvl) {

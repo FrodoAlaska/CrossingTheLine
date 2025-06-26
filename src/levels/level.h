@@ -133,6 +133,7 @@ struct Level {
   nikola::Vec3 lerp_points[4];
   nikola::Vec3 current_lerp_point;
 
+  UIText pause_text;
   bool is_paused = false;
   
   // Debug stuff
@@ -166,9 +167,13 @@ void level_unload(Level* lvl);
 
 void level_reset(Level* lvl);
 
+void level_process_input(Level* lvl);
+
 void level_update(Level* lvl);
 
 void level_render(Level* lvl);
+
+void level_render_hud(Level* lvl);
 
 void level_render_gui(Level* lvl);
 
@@ -185,6 +190,8 @@ void level_manager_shutdown();
 void level_manager_reset();
 
 void level_manager_advance();
+
+void level_manager_process_input();
 
 void level_manager_update(); 
 

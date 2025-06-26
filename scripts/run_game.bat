@@ -1,9 +1,9 @@
 pushd build 
 
-cmake --build . --config Debug --parallel 8
+cmake --build . --config Release --parallel 8
 if %ERRORLEVEL% NEQ 0 goto error
 
-.\Debug\game.exe 
+.\Release\game.exe 
 
 popd
 

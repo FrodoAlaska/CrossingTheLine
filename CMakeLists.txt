@@ -8,6 +8,7 @@ include(FetchContent)
 set(NIKOLA_BUILD_TESTBED OFF)
 set(NIKOLA_BUILD_NBR     OFF)
 set(qu3e_build_demo      OFF)
+set(DISTRIBUTION_BUILD   0)
 
 FetchContent_Declare(
   nikola

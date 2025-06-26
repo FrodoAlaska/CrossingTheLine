@@ -257,6 +257,10 @@ void state_manager_init(nikola::Window* window, const nikola::ResourceID& font_i
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
 }
 
+const StateType state_manager_get_current_state() {
+  return s_manager.current_state;
+}
+
 void state_manager_update() {
   // Update the current state
   ui_layout_update(s_manager.entries[s_manager.current_state].layout);

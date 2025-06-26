@@ -69,6 +69,12 @@ void app_update(nikola::App* app, const nikola::f64 delta_time) {
 
   // Update levels
   level_manager_update();
+
+  // Process level input 
+  StateType current_state = state_manager_get_current_state();
+  if(current_state == STATE_LEVEL || current_state == STATE_HUB) {
+    level_manager_process_input();
+  }
 }
 
 void app_render(nikola::App* app) {
@@ -87,12 +93,14 @@ void app_render(nikola::App* app) {
 }
 
 void app_render_gui(nikola::App* app) {
+#if DISTRIBUTION_BUILD == 0
   nikola::gui_begin();
   
   // Level GUI
   level_manager_render_gui();  
 
   nikola::gui_end();
+#endif
 }
 
 /// App functions 
