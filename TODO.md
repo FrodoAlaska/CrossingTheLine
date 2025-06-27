@@ -7,8 +7,8 @@
     - Save the dialogue in a binary file instead of a text file for the dist build.
 
 - Polish points: 
-    - Improve the story thingy at the end? Better visualization? Inside a box maybe?
     - Make the key standout more.
+    - Some _very_ calm music in the background for when the player wins?
     - Improved credits scene
     - Settings UI (leave this to the end)
 

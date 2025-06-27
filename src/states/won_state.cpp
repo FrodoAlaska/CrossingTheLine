@@ -2,6 +2,7 @@
 #include "ui/ui.h"
 #include "levels/level.h"
 #include "game_event.h"
+#include "input_manager.h"
 
 #include <nikola/nikola.h>
 
@@ -107,7 +108,7 @@ void won_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
     .string = "",
 
     .font_id   = font_id,
-    .font_size = 50.0f,
+    .font_size = 40.0f,
 
     .anchor = UI_ANCHOR_TOP_LEFT, 
     .color  = nikola::Vec4(1.0f),
@@ -120,7 +121,8 @@ void won_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
                    window, 
                    font_id,
                    on_won_layout_click_func);
- 
+  won_layout->is_active = false;
+
   ui_layout_begin(*won_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 0.0f));
   ui_layout_push_text(*won_layout, "Suffer", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 0.0f));
   ui_layout_end(*won_layout);
@@ -141,11 +143,17 @@ void won_state_reset() {
   }
 
   s_won.total_characters = 0;
+  s_won.layout.is_active = false;
 }
 
 void won_state_process_input() {
-  ui_layout_update(s_won.layout);
   nikola::timer_update(s_won.animation_timer);
+  ui_layout_update(s_won.layout);
+
+  if(input_manager_action_pressed(INPUT_ACTION_ACCEPT)) {
+    s_won.layout.is_active = true; 
+    s_won.total_characters = s_won.title.string.size();
+  }
 }
 
 void won_state_render() {
