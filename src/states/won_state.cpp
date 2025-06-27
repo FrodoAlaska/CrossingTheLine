@@ -170,17 +170,18 @@ void won_state_render() {
 
     if(s_won.total_characters >= s_won.title.string.size()) {
       s_won.total_characters = s_won.title.string.size(); 
+      s_won.layout.is_active = true;
     }
   }
   
   // Render the dialogue
 
   nikola::Vec2 off   = nikola::Vec2(0.0f);
-  nikola::Vec2 pos   = nikola::Vec2(10.0f, s_won.title.font_size);
+  nikola::Vec2 pos   = nikola::Vec2(20.0f, s_won.title.font_size + 10.0f);
   float scale        = s_won.title.font_size / 256.0f;
   float prev_advance = 0.0f;
 
-  float wrap_limit = width - s_won.title.font_size;
+  float wrap_limit = width - s_won.title.font_size - 20.0f;
 
   for(nikola::sizei i = 0; i < s_won.total_characters; i++) {
     char ch             = s_won.title.string[i];
@@ -202,7 +203,7 @@ void won_state_render() {
 
     if((off.x + pos.x) >= wrap_limit) {
       off.y += s_won.title.font_size + 2.0f;
-      off.x  = 10.0f;
+      off.x  = pos.x;
     }
     
     nikola::batch_render_codepoint(s_won.title.font, ch, pos + off, s_won.title.font_size, s_won.title.color); 
