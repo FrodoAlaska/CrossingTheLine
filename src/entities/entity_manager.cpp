@@ -250,7 +250,12 @@ void entity_manager_reset() {
 void entity_manager_update() {
   // Player update
   player_update(s_entt.player);
-  
+
+  // Coin update
+  if(s_entt.coin.is_active) {
+    nikola::physics_body_set_angular_velocity(s_entt.coin.body, nikola::Vec3(0.0f, 4.5f, 0.0f));
+  } 
+
   // AABB tests (only if the player is active)
   
   if(!s_entt.player.entity.is_active) {
@@ -320,7 +325,7 @@ void entity_manager_render() {
   if(s_entt.coin.is_active) {
     transform = nikola::physics_body_get_transform(s_entt.coin.body);
     
-    nikola::transform_scale(transform, nikola::Vec3(0.02f));
+    nikola::transform_scale(transform, nikola::Vec3(0.025f));
     nikola::renderer_queue_model(resource_database_get(RESOURCE_COIN), transform);
   }
 
