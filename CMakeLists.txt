@@ -92,7 +92,7 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
   "$<$<COMPILE_LANGUAGE:CXX>:${nikola_SOURCE_DIR}/nikola/include/nikola/nikola.h>"
 )
 
-file(COPY res/dialogue.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/res)
+file(COPY res/dialogue.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 ############################################################
 
 ### Compiling options ###

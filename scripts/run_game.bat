@@ -1,5 +1,6 @@
 pushd build 
 
+xcopy ..\res\dialogue.txt /f .\
 cmake --build . --config Release --parallel 8
 if %ERRORLEVEL% NEQ 0 goto error
 

@@ -13,6 +13,9 @@ struct WonState {
 
   nikola::DynamicArray<nikola::String> lines; 
   nikola::sizei current_line = 0;
+
+  nikola::Timer animation_timer;
+  nikola::sizei total_characters = 0;
 };
 
 static WonState s_won;
@@ -48,6 +51,14 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
 /// ----------------------------------------------------------------------
 /// Private functions
 
+static void skip_comment(nikola::sizei* index, const nikola::String& source) {
+  char ch = source[*index];
+  while(ch != '\n') {
+    *index++;
+    ch = source[*index];
+  }
+}
+
 static void read_dialogue_file(const nikola::FilePath& txt_path) {
   // Open the file
   nikola::File file; 
@@ -63,16 +74,21 @@ static void read_dialogue_file(const nikola::FilePath& txt_path) {
   // Fill the lines array
   nikola::String line = ""; 
   for(nikola::sizei i = 0; i < dialogue.size(); i++) {
-    if(dialogue[i] != ';') {
-      line += dialogue[i];
-      continue;
-    }
-
-    // Skip the newline after the delimiter (the `;` in this case)
-    i++;
-
-    s_won.lines.push_back(line);
-    line = "";
+    switch(dialogue[i]) {
+      case '\n':
+        break; 
+      case '#':
+        i++;
+        skip_comment(&i, dialogue);
+        break; 
+      case ';':
+        s_won.lines.push_back(line);
+        line = "";
+        break;
+      default:
+        line += dialogue[i];
+        break;
+    } 
   }
 
   file.close();
@@ -94,7 +110,7 @@ void won_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
     .font_size = 50.0f,
 
     .anchor = UI_ANCHOR_TOP_LEFT, 
-    .color  = nikola::Vec4(0.6f, 0.6f, 0.0f, 0.0f),
+    .color  = nikola::Vec4(1.0f),
   };
   ui_text_create(&s_won.title, window, text_desc);
 
@@ -114,22 +130,75 @@ void won_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   
   // Listen to events
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
+
+  // Timer init
+  nikola::timer_create(&s_won.animation_timer, 8.0f, false);
 }
 
 void won_state_reset() {
-  s_won.title.color.a = 0.0f;
   for(auto& txt : s_won.layout.texts) {
     txt.color.a = 0.0f;
   }
+
+  s_won.total_characters = 0;
 }
 
 void won_state_process_input() {
   ui_layout_update(s_won.layout);
+  nikola::timer_update(s_won.animation_timer);
 }
 
 void won_state_render() {
-  ui_text_render_animation(s_won.title, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
-  ui_layout_render_animation(s_won.layout, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
+  // Get the window bounds
+  int width, height; 
+  nikola::window_get_size(s_won.title.window_ref, &width, &height);
+
+  // Render the layout
+  ui_layout_render_animation(s_won.layout, UI_TEXT_ANIMATION_BLINK, 8.0f);
+
+  // Render the next character if the timer runs out
+  if(s_won.animation_timer.has_runout) {
+    s_won.total_characters++;
+
+    if(s_won.total_characters >= s_won.title.string.size()) {
+      s_won.total_characters = s_won.title.string.size(); 
+    }
+  }
+  
+  // Render the dialogue
+
+  nikola::Vec2 off   = nikola::Vec2(0.0f);
+  nikola::Vec2 pos   = nikola::Vec2(10.0f, s_won.title.font_size);
+  float scale        = s_won.title.font_size / 256.0f;
+  float prev_advance = 0.0f;
+
+  float wrap_limit = width - s_won.title.font_size;
+
+  for(nikola::sizei i = 0; i < s_won.total_characters; i++) {
+    char ch             = s_won.title.string[i];
+    nikola::Glyph glyph = s_won.title.font->glyphs[ch];
+    
+    if(ch == '\n') {
+      off.x = 0.0f;
+      off.y += s_won.title.font_size + 2.0f;
+
+      continue;
+    }
+    else if(ch == ' ' || ch == '\t') {
+      off.x += prev_advance * scale;
+      continue;
+    }
+    
+    off.x       += glyph.advance_x * scale;
+    prev_advance = glyph.advance_x;
+
+    if((off.x + pos.x) >= wrap_limit) {
+      off.y += s_won.title.font_size + 2.0f;
+      off.x  = 10.0f;
+    }
+    
+    nikola::batch_render_codepoint(s_won.title.font, ch, pos + off, s_won.title.font_size, s_won.title.color); 
+  } 
 }
 
 /// Won state functions

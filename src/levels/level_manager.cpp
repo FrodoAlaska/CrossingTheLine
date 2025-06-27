@@ -157,13 +157,6 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
     return;
   }
 
-  // Play some cool music
-  GameEvent music_event = {
-    .type       = GAME_EVENT_MUSIC_PLAYED, 
-    .sound_type = (s_manager.current_group == 1) ? SOUND_HUB : SOUND_AMBIANCE  
-  };
-  game_event_dispatch(music_event);
- 
   // Reset the level before switching
   level_reset(s_manager.current_level);
 }
@@ -210,6 +203,13 @@ void level_manager_init(nikola::Window* window, const nikola::ResourceID& font_i
   game_event_listen(GAME_EVENT_CHAPTER_CHANGED, on_chapter_changed);
   game_event_listen(GAME_EVENT_COIN_COLLECTED, on_coin_collected);
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed);
+
+  // Cool sound event
+  GameEvent sound_event = {
+    .type       = GAME_EVENT_MUSIC_PLAYED, 
+    .sound_type = SOUND_HUB,
+  };
+  game_event_dispatch(sound_event);
 }
 
 void level_manager_shutdown() {
@@ -221,6 +221,11 @@ void level_manager_shutdown() {
 
 void level_manager_reset() {
   s_manager.current_group = 1;
+
+  for(nikola::sizei i = 0; i < LEVEL_GROUPS_MAX; i++) {
+    s_manager.groups[i].current_level   = 0;
+    s_manager.groups[i].coins_collected = 0;
+  }
 }
 
 void level_manager_advance() {
@@ -237,6 +242,13 @@ void level_manager_advance() {
       .type       = GAME_EVENT_STATE_CHANGED, 
       .state_type = STATE_LEVEL 
     });
+    
+    // Cool sound event
+    GameEvent sound_event = {
+      .type       = GAME_EVENT_MUSIC_PLAYED, 
+      .sound_type = SOUND_AMBIANCE,
+    };
+    game_event_dispatch(sound_event);
 
     return;
   } 
@@ -266,6 +278,12 @@ void level_manager_advance() {
     .type       = GAME_EVENT_STATE_CHANGED, 
     .state_type = STATE_LEVEL
   });
+  
+  // Cool sound event
+  game_event_dispatch(GameEvent{
+    .type       = GAME_EVENT_MUSIC_PLAYED, 
+    .sound_type = SOUND_HUB,
+  });
 }
 
 void level_manager_process_input() {
@@ -288,17 +306,18 @@ void level_manager_process_input() {
     });
   }
   else {
-    // Reset the group levels
-    group->current_level = 0;
-
-    // Loading the new level
-    level_unload(s_manager.current_level);
-    level_load(s_manager.current_level, group->level_paths[group->current_level]);
-     
-    game_event_dispatch(GameEvent{
-      .type       = GAME_EVENT_STATE_CHANGED, 
-      .state_type = STATE_LEVEL
-    });
+    level_manager_advance();
+    // // Reset the group levels
+    // group->current_level = 0;
+    //
+    // // Loading the new level
+    // level_unload(s_manager.current_level);
+    // level_load(s_manager.current_level, group->level_paths[group->current_level]);
+    //  
+    // game_event_dispatch(GameEvent{
+    //   .type       = GAME_EVENT_STATE_CHANGED, 
+    //   .state_type = STATE_LEVEL
+    // });
   }
 }
 
