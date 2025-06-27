@@ -3,6 +3,7 @@
 #include "levels/level.h"
 #include "game_event.h"
 #include "input_manager.h"
+#include "sound_manager.h"
 
 #include <nikola/nikola.h>
 
@@ -38,6 +39,12 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
   if(event.state_type != STATE_WON) {
     return;
   }
+
+  GameEvent sound_event = {
+    .type       = GAME_EVENT_MUSIC_PLAYED, 
+    .sound_type = SOUND_MUSIC_WON,
+  };
+  game_event_dispatch(sound_event);
  
   // Move through the dialogue when the player reaches the end
   //

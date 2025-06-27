@@ -80,7 +80,7 @@ void credits_state_process_input() {
 
 void credits_state_render() {
   ui_text_render_animation(s_credits.title, UI_TEXT_ANIMATION_FADE_IN, 8.0f);
-  ui_layout_render_animation(s_credits.layout, UI_TEXT_ANIMATION_BLINK, 15.0f);
+  ui_layout_render_animation(s_credits.layout, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
 }
 
 /// Credits state functions

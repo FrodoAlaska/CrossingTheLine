@@ -62,6 +62,7 @@ void player_update(Player& player) {
 void player_set_active(Player& player, const bool active) {
   player.entity.is_active = active;
   nikola::physics_body_set_awake(player.entity.body, active);
+  nikola::physics_body_set_linear_velocity(player.entity.body, nikola::Vec3(0.0f));
 }
 
 /// Player functions
