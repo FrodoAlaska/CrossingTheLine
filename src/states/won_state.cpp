@@ -47,10 +47,8 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
   game_event_dispatch(sound_event);
  
   // Move through the dialogue when the player reaches the end
-  //
-  // @NOTE: Having this "advance" function here might not be the best, but it works.
-  s_won.current_line++; 
-  ui_text_set_string(s_won.title, s_won.lines[s_won.current_line - 1]);
+  nikola::sizei current_line = level_manager_get_level_index();
+  ui_text_set_string(s_won.title, s_won.lines[current_line]);
 }
 
 /// Callbacks
@@ -193,26 +191,31 @@ void won_state_render() {
   for(nikola::sizei i = 0; i < s_won.total_characters; i++) {
     char ch             = s_won.title.string[i];
     nikola::Glyph glyph = s_won.title.font->glyphs[ch];
-    
+
+    // Take into account the new line
     if(ch == '\n') {
       off.x = 0.0f;
       off.y += s_won.title.font_size + 2.0f;
 
       continue;
     }
+    // Take into account the spaces
     else if(ch == ' ' || ch == '\t') {
       off.x += prev_advance * scale;
       continue;
     }
-    
+   
+    // Add the offsets
     off.x       += glyph.advance_x * scale;
     prev_advance = glyph.advance_x;
 
+    // Wrap the character around if needed
     if((off.x + pos.x) >= wrap_limit) {
       off.y += s_won.title.font_size + 2.0f;
       off.x  = pos.x;
     }
-    
+   
+    // Draw the character
     nikola::batch_render_codepoint(s_won.title.font, ch, pos + off, s_won.title.font_size, s_won.title.color); 
   } 
 }

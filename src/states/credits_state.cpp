@@ -2,6 +2,7 @@
 #include "ui/ui.h"
 #include "levels/level.h"
 #include "game_event.h"
+#include "sound_manager.h"
 
 #include <nikola/nikola.h>
 
@@ -34,6 +35,18 @@ static void on_credits_layout_click_func(UILayout& layout, UIText& text, void* u
   }
 }
 
+static void on_state_change(const GameEvent& event, void* dispatcher, void* listener) {
+  if(event.state_type != STATE_CREDITS) {
+    return;
+  }
+
+  // Play some nice music
+  GameEvent sound_event = {
+    .type       = GAME_EVENT_MUSIC_PLAYED, 
+    .sound_type = SOUND_MUSIC_WON,
+  };
+  game_event_dispatch(sound_event);
+}
 
 /// Callbacks
 /// ----------------------------------------------------------------------
@@ -65,6 +78,9 @@ void credits_state_init(nikola::Window* window, const nikola::ResourceID& font_i
   ui_layout_push_text(*layout, "Replay", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
   ui_layout_push_text(*layout, "Quit", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
   ui_layout_end(*layout);
+
+  // Listen to events
+  game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
 }
 
 void credits_state_reset() {

@@ -13,9 +13,10 @@
 /// Besides that, they help to set light boundries to the amount of 
 /// entities we can have in a level. Again, though, they are not "set in stone", per se. 
 
-const nikola::sizei POINTS_MAX   = 6;
-const nikola::sizei TILES_MAX    = 256;
-const nikola::sizei VEHICLES_MAX = 12;
+const nikola::sizei POINTS_MAX       = 6;
+const nikola::sizei TILES_MAX        = 256;
+const nikola::sizei VEHICLES_MAX     = 12;
+const nikola::sizei LEVEL_GROUPS_MAX = 5;
 
 /// Consts
 /// ----------------------------------------------------------------------
@@ -160,6 +161,8 @@ void level_manager_render();
 void level_manager_render_hud();
 
 void level_manager_render_gui();
+
+const nikola::sizei level_manager_get_level_index();
 
 Level* level_manager_get_current_level();
 

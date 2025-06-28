@@ -12,7 +12,6 @@
 /// ----------------------------------------------------------------------
 /// Consts
 
-const nikola::sizei LEVEL_GROUPS_MAX = 4;
 const nikola::sizei GROUP_TEXTS_MAX  = 4;
 
 /// Consts
@@ -22,6 +21,7 @@ const nikola::sizei GROUP_TEXTS_MAX  = 4;
 /// LevelGroup
 struct LevelGroup {
   nikola::String name; 
+  nikola::sizei index;
 
   nikola::DynamicArray<nikola::FilePath> level_paths;
   nikola::sizei current_level   = 0;
@@ -56,16 +56,24 @@ static void init_group_ui(nikola::Window* window, const nikola::ResourceID& font
   // Groups init
 
   s_manager.groups[0].name      = "Hub"; 
+  s_manager.groups[0].index     = 0;
   s_manager.groups[0].is_locked = false;
 
   s_manager.groups[1].name      = "Chapter 1"; 
+  s_manager.groups[1].index     = 1;
   s_manager.groups[1].is_locked = false;
   
   s_manager.groups[2].name      = "Chapter 2"; 
+  s_manager.groups[2].index     = 2;
   s_manager.groups[2].is_locked = true;
   
   s_manager.groups[3].name      = "Chapter 3"; 
+  s_manager.groups[3].index     = 3;
   s_manager.groups[3].is_locked = true;
+  
+  s_manager.groups[4].name      = "Chapter 4"; 
+  s_manager.groups[4].index     = 4;
+  s_manager.groups[4].is_locked = true;
 
   // UI init
 
@@ -95,15 +103,17 @@ static void init_group_ui(nikola::Window* window, const nikola::ResourceID& font
 }
 
 static nikola::sizei get_index_from_pos(Entity* point) {
-  int pos_z = (int)nikola::physics_body_get_position(point->body).z;
+  int pos_x = (int)nikola::physics_body_get_position(point->body).x;
 
-  switch(pos_z) {
+  switch(pos_x) {
     case -8:
       return 1;
+    case 0:
+      return 2;
     case 8:
       return 3;
     case 24:
-      return 2;
+      return 4;
   }
 }
 
@@ -296,8 +306,10 @@ void level_manager_process_input() {
     });
   }
   else {
-    // Reset the group levels
-    group->current_level = 0;
+    // Reset the group's variables
+    group->current_level    = 0;
+    group->coins_collected  = 0;
+    s_manager.current_group = group->index;
 
     // Loading the new level
     level_unload(s_manager.current_level);
@@ -363,6 +375,13 @@ void level_manager_render_gui() {
     ImGui::EndCombo();
   }
   nikola::gui_end_panel(); 
+}
+
+const nikola::sizei level_manager_get_level_index() {
+  LevelGroup* previous_group = &s_manager.groups[s_manager.current_group - 1];
+  LevelGroup* current_group  = &s_manager.groups[s_manager.current_group];
+
+  return (previous_group->current_level + current_group->current_level);
 }
 
 Level* level_manager_get_current_level() {

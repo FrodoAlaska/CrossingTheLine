@@ -475,7 +475,7 @@ void entity_manager_render_gui() {
 
       // Position 
       nikola::Vec3 position = nikola::physics_body_get_position(vehicle_entt->body);
-      if(ImGui::DragFloat3("Position", &position[0], 8.0f)) {
+      if(ImGui::DragFloat3("Position", &position[0], 2.0f)) {
         nikola::physics_body_set_position(vehicle_entt->body, position);
         vehicle_entt->start_pos = position;
       }
@@ -500,7 +500,7 @@ void entity_manager_render_gui() {
       }
 
       // Direction 
-      ImGui::DragFloat3("Direction", &s_entt.vehicles[i].direction[0], 0.1f, -1.0f, 1.0f);
+      ImGui::DragFloat3("Direction", &s_entt.vehicles[i].direction[0], 1.0f, -1.0f, 1.0f);
 
       // Active state
       if(ImGui::Checkbox("Active", &vehicle_entt->is_active)) {
@@ -523,11 +523,11 @@ void entity_manager_render_gui() {
 
     // Position
     static nikola::Vec3 position = nikola::Vec3(-16.0f, -1.5f, -32.0f);
-    ImGui::DragFloat3("Position", &position[0], 0.1f);
+    ImGui::DragFloat3("Position", &position[0], 2.0f);
     
     // Direction
     static nikola::Vec3 dir = nikola::Vec3(0.0f, 0.0f, 1.0f);
-    ImGui::DragFloat3("Direction", &dir[0], 0.1f, -1.0f, 1.0f);
+    ImGui::DragFloat3("Direction", &dir[0], 1.0f, -1.0f, 1.0f);
     
     // Acceleration
     static float accel = 50.0f;
