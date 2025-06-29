@@ -18,6 +18,19 @@ const nikola::sizei GROUP_TEXTS_MAX  = 4;
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// NKData
+struct NKData {
+  nikola::u8 current_group   = 0; 
+  nikola::u8 coins_collected = 0;
+
+  float master_volume = 1.0f; 
+  float music_volume  = 1.0f; 
+  float sfx_volume    = 1.0f;
+};
+/// NKData
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// LevelGroup
 struct LevelGroup {
   nikola::String name; 
@@ -117,6 +130,55 @@ static nikola::sizei get_index_from_pos(Entity* point) {
   }
 }
 
+static void load_nkdata_file(NKData* data, const nikola::FilePath& path) {
+  nikola::File file; 
+  if(!nikola::file_open(&file, path, (int)(nikola::FILE_OPEN_READ | nikola::FILE_OPEN_BINARY))) {
+    NIKOLA_LOG_ERROR("Failed to open NKData file at \'%s\'", path.c_str());
+    return;
+  }
+
+  // Load current group
+  nikola::file_read_bytes(file, &data->current_group, sizeof(data->current_group));
+
+  // Load coins collected
+  nikola::file_read_bytes(file, &data->coins_collected, sizeof(data->coins_collected));
+
+  // Load volume settings
+
+  nikola::file_read_bytes(file, &data->master_volume, sizeof(data->master_volume));
+  nikola::file_read_bytes(file, &data->music_volume, sizeof(data->music_volume));
+  nikola::file_read_bytes(file, &data->sfx_volume, sizeof(data->sfx_volume));
+
+  nikola::file_close(file);
+}
+
+static void save_nkdata_file() {
+  nikola::File file; 
+  if(!nikola::file_open(&file, "data.nkdata", (int)(nikola::FILE_OPEN_WRITE | nikola::FILE_OPEN_BINARY))) {
+    NIKOLA_LOG_ERROR("Failed to open NKData file at \'data.nkdata\'");
+    return;
+  }
+
+  NKData data = {
+    .current_group   = (nikola::u8)s_manager.current_group, 
+    .coins_collected = (nikola::u8)s_manager.groups[s_manager.current_group].coins_collected,
+  };
+
+  // Save current group
+  nikola::file_write_bytes(file, &data.current_group, sizeof(data.current_group));
+
+  // Save coins collected
+  nikola::file_write_bytes(file, &data.coins_collected, sizeof(data.coins_collected));
+
+  // Save volume settings
+
+  nikola::file_write_bytes(file, &data.master_volume, sizeof(data.master_volume));
+  nikola::file_write_bytes(file, &data.music_volume, sizeof(data.music_volume));
+  nikola::file_write_bytes(file, &data.sfx_volume, sizeof(data.sfx_volume));
+  
+  nikola::file_close(file);
+}
+
 /// Private functions
 /// ----------------------------------------------------------------------
 
@@ -135,7 +197,7 @@ static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* l
   // Set up the UI
   ui_text_set_string(s_manager.texts[0], group->name);
   
-  nikola::String levels_count = (std::to_string(group->current_level) + '/' + std::to_string(group->level_paths.size()));
+  nikola::String levels_count = ("Levels: " + std::to_string(group->level_paths.size()));
   ui_text_set_string(s_manager.texts[1], levels_count);
  
   nikola::String keys_left = ("Keys: " + std::to_string(group->coins_collected) + '/' + std::to_string(group->level_paths.size()));
@@ -233,12 +295,27 @@ void level_manager_shutdown() {
 }
 
 void level_manager_reset() {
-  s_manager.current_group = 0;
+  NKData data; 
+  load_nkdata_file(&data, "data.nkdata");
 
-  for(nikola::sizei i = 0; i < LEVEL_GROUPS_MAX; i++) {
-    s_manager.groups[i].current_level   = 0;
-    s_manager.groups[i].coins_collected = 0;
+  // We are assuming that all of the previous levels 
+  // before the current group were completed, since 
+  // every group HAS to be completed before advancing to 
+  // the next group.
+  //
+  // Probably not the best idea, but it works.
+  for(nikola::sizei i = 0; i < data.current_group; i++) {
+    LevelGroup* group = &s_manager.groups[i];
+
+    group->coins_collected = group->level_paths.size();
+    group->is_locked       = false;
   }
+
+  // Loading the settings of the current group
+  
+  s_manager.current_group                                   = data.current_group;
+  s_manager.groups[s_manager.current_group].coins_collected = data.coins_collected; 
+  s_manager.groups[s_manager.current_group].is_locked       = false;
 
   // Load the hub level
   level_unload(s_manager.current_level);
@@ -260,6 +337,7 @@ void level_manager_advance() {
       .state_type = STATE_LEVEL 
     });
 
+    save_nkdata_file();
     return;
   } 
 
@@ -274,6 +352,9 @@ void level_manager_advance() {
 
     return;
   }
+  
+  // Save the current state
+  save_nkdata_file();
 
   // We cannot advance into the next group of levels until 
   // the player has collected all of the coins of the previous group. 
