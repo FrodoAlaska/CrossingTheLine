@@ -1,0 +1,55 @@
+#pragma once
+
+#include <nikola/nikola.h>
+
+inline nikola::GfxShaderDesc generate_fog_shader() {
+  return nikola::GfxShaderDesc {
+    "#version 460 core"
+    "\n"
+    "layout (location = 0) in vec2 aPos;"
+    "layout (location = 1) in vec2 aTextureCoords;"
+    "\n"
+    "out VS_OUT {"
+    "  vec2 tex_coords;"
+    "} vs_out;"
+    "\n"
+    "void main() {"
+    "  vs_out.tex_coords = aTextureCoords;"
+    "  gl_Position       = vec4(aPos, 0.0, 1.0);"
+    "}",
+
+    "#version 460 core"
+    "\n"
+    "layout (location = 0) out vec4 frag_color;"
+    "\n"
+    "in VS_OUT {"
+    "  vec2 tex_coords;"
+    "} fs_in;"
+    "\n"
+    "uniform sampler2D u_color_buffer;"
+    "uniform sampler2D u_depth_buffer;"
+    "\n"
+    "uniform float u_fog_density;"
+    "uniform vec3 u_fog_color;"
+    "\n"
+    "float linearize_depth(float depth, float near, float far) {\n"
+    "   float ndc = depth * 2.0 - 1;"
+    "   return (2.0 * near * far) / (far + near - ndc * (far - near));"
+    "}"
+    "\n"
+    "float compute_fog(float distance, float density) {\n"
+    "   return 1.0 - exp(-distance * density);"
+    "}"
+    "\n"
+    "void main() {"
+    "  vec3 depth_sample = texture(u_depth_buffer, fs_in.tex_coords).rgb;"
+    "  vec3 color_sample = texture(u_color_buffer, fs_in.tex_coords).rgb;"
+    "\n"
+    "  float linear_z   = linearize_depth(depth_sample.r, 0.1, 120.0);"
+    "  float fog_factor = compute_fog(linear_z, u_fog_density);"
+    "\n"
+    "  vec3 color = mix(u_fog_color, color_sample, fog_factor);\n"
+    "  frag_color = vec4(color, 1.0);"
+    "}"
+  };
+}

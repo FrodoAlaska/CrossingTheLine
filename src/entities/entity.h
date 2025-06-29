@@ -49,6 +49,10 @@ enum TileType {
   TILE_ROAD, 
   TILE_PAVIMENT,
   TILE_CONE,
+
+  TILE_TUNNEL_ONE_WAY,
+  TILE_TUNNEL_TWO_WAY,
+  TILE_TUNNEL_THREE_WAY,
 };
 /// TileType 
 /// ----------------------------------------------------------------------

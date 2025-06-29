@@ -103,15 +103,58 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
   }
 }
 
+static void on_pause_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
+  Level* lvl = (Level*)user_data;
+
+  switch(layout.current_option) {
+    case 0: // Back To Menu
+      game_event_dispatch(GameEvent {
+        .type       = GAME_EVENT_STATE_CHANGED, 
+        .state_type = STATE_MENU 
+      });
+
+      lvl->current_lerp_point = lvl->lerp_points[LERP_POINT_DEFAULT];
+      level_reset(lvl);
+      break;
+    case 1: // Quit
+      nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
+      break;
+  }
+}
+
 /// Callbacks
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// Private functions
 
-static void lerp_camera(Level* lvl) {
-  nikola::Camera* camera = &lvl->main_camera;
-  camera->position       = nikola::vec3_lerp(camera->position, lvl->current_lerp_point, nikola::niclock_get_delta_time() * 1.5f);
+static void init_ui(Level* lvl) {
+  // Text init
+  UITextDesc text_desc = {
+    .string = "PAUSED", 
+
+    .font_id   = resource_database_get(RESOURCE_FONT),
+    .font_size = 80.0f, 
+
+    .anchor = UI_ANCHOR_TOP_CENTER, 
+    .color  = nikola::Vec4(1.0f),
+  };
+  ui_text_create(&lvl->pause_text, lvl->window_ref, text_desc);
+
+  // Layout init
+  
+  ui_layout_create(&lvl->pause_layout, 
+                   lvl->window_ref,
+                   resource_database_get(RESOURCE_FONT),
+                   on_pause_layout_click_func,
+                   lvl);
+
+  ui_layout_begin(lvl->pause_layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
+  ui_layout_push_text(lvl->pause_layout, "Back To Main Menu", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
+  ui_layout_push_text(lvl->pause_layout, "Quit", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
+  ui_layout_end(lvl->pause_layout);
+
+  lvl->pause_layout.is_active = false;
 }
 
 /// Private functions
@@ -128,7 +171,7 @@ Level* level_create(nikola::Window* window) {
 
   // Lerp points init
 
-  lvl->lerp_points[LERP_POINT_START]   = nikola::Vec3(-61.0f, 55.0f, 16.0f);
+  lvl->lerp_points[LERP_POINT_START]   = nikola::Vec3(-52.0f, 14.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_WIN]     = nikola::Vec3(50.0f, 80.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_LOSE]    = nikola::Vec3(-61.0f, -55.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_DEFAULT] = nikola::Vec3(100.0f, 55.0f, 10.0f);
@@ -144,17 +187,17 @@ Level* level_create(nikola::Window* window) {
     .move_func    = nullptr,
   };
   nikola::camera_create(&lvl->main_camera, cam_desc);
-  lvl->main_camera.yaw       = 0.2f;
-  lvl->main_camera.pitch     = -40.0f;
-  lvl->main_camera.far       = 150.0f;
+  lvl->main_camera.yaw   = 2.0f;
+  lvl->main_camera.pitch = -10.0f;
+  lvl->main_camera.far   = 120.0f;
 
   // GUI camera init
   nikola::camera_create(&lvl->gui_camera, cam_desc);
   lvl->gui_camera.position = lvl->lerp_points[LERP_POINT_START]; 
   lvl->gui_camera.move_fn  = editor_camera_func; 
   lvl->gui_camera.far      = 500.0f;
-  lvl->gui_camera.yaw      = 0.0f;
-  lvl->gui_camera.pitch    = -48.5f;
+  lvl->gui_camera.yaw      = 2.0f;
+  lvl->gui_camera.pitch    = -10.5f;
 
   // Listen to events
   nikola::event_listen(nikola::EVENT_MOUSE_SCROLL_WHEEL, mouse_scroll_event, &lvl->gui_camera);
@@ -168,16 +211,7 @@ Level* level_create(nikola::Window* window) {
   lvl->frame.skybox_id = resource_database_get(RESOURCE_SKYBOX);
 
   // UI init
-  UITextDesc text_desc = {
-    .string = "PAUSED", 
-
-    .font_id   = resource_database_get(RESOURCE_FONT),
-    .font_size = 80.0f, 
-
-    .anchor = UI_ANCHOR_CENTER, 
-    .color  = nikola::Vec4(1.0f),
-  };
-  ui_text_create(&lvl->pause_text, window, text_desc);
+  init_ui(lvl);
 
   // Entity manager init
   entity_manager_create(lvl);
@@ -187,7 +221,7 @@ Level* level_create(nikola::Window* window) {
 
   // Lights init
   lvl->frame.dir_light.direction = nikola::Vec3(-1.0f);
-  lvl->frame.dir_light.color     = nikola::Vec3(0.7f);
+  lvl->frame.dir_light.color     = nikola::Vec3(0.5f);
   lvl->frame.ambient             = nikola::Vec3(0.5f);
 
   return lvl;
@@ -235,9 +269,21 @@ void level_unload(Level* lvl) {
 void level_reset(Level* lvl) {
   // Reset variables
   lvl->is_paused = false; 
+  
+  // Reset layout
+  
+  lvl->pause_layout.is_active = false;
+  lvl->pause_text.color.a     = 0.0f;
+  
+  for(auto& txt : lvl->pause_layout.texts) {
+    txt.color.a = 0.0f;
+  }
 
   // Reset the entities
   entity_manager_reset();
+
+  // Reset the physics world
+  nikola::physics_world_set_paused(false);
 }
 
 void level_process_input(Level* lvl) {
@@ -255,9 +301,14 @@ void level_process_input(Level* lvl) {
 
   // Pause level
   if(input_manager_action_pressed(INPUT_ACTION_PAUSE)) {
-    lvl->is_paused = !lvl->is_paused;
+    lvl->is_paused              = !lvl->is_paused; 
+    lvl->pause_layout.is_active = lvl->is_paused;
+
     nikola::physics_world_set_paused(lvl->is_paused);
   }
+
+  // Layout update
+  ui_layout_update(lvl->pause_layout);
 
   // Update tiles
   if(lvl->has_editor) {
@@ -271,7 +322,8 @@ void level_update(Level* lvl) {
   }
 
   // Keep lerping the camera which is honestly a bad idea
-  lerp_camera(lvl);
+  nikola::Camera* camera = &lvl->main_camera;
+  camera->position       = nikola::vec3_lerp(camera->position, lvl->current_lerp_point, nikola::niclock_get_delta_time() * 1.5f);
 
   // Update entities
   entity_manager_update();
@@ -287,6 +339,7 @@ void level_render_hud(Level* lvl) {
   }
 
   ui_text_render_animation(lvl->pause_text, UI_TEXT_ANIMATION_BLINK, 8.0f);
+  ui_layout_render_animation(lvl->pause_layout, UI_TEXT_ANIMATION_FADE_IN, 10.0f);
 }
 
 void level_render(Level* lvl) {

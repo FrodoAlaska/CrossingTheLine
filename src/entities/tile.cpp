@@ -14,6 +14,15 @@ void tile_create(Tile* tile, Level* lvl, const TileType type, const nikola::Vec3
     case TILE_CONE:
       scale = nikola::Vec3(2.0f);
       break;
+    case TILE_TUNNEL_ONE_WAY:
+      scale = nikola::Vec3(0.015f);
+      break;
+    case TILE_TUNNEL_TWO_WAY:
+      scale = nikola::Vec3(0.02f, 0.015f, 0.015f);
+      break;
+    case TILE_TUNNEL_THREE_WAY:
+      scale = nikola::Vec3(0.03f, 0.015f, 0.015f);
+      break;
     default:
       break;
   }

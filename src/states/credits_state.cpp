@@ -22,7 +22,7 @@ static CreditsState s_credits;
 
 static void on_credits_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
   switch(layout.current_option) {
-    case 0: // Replay
+    case 0: // Relive
       game_event_dispatch(GameEvent {
         .type       = GAME_EVENT_STATE_CHANGED, 
         .state_type = STATE_LEVEL 
@@ -57,7 +57,7 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
 void credits_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   // Title init 
   UITextDesc text_desc = {
-    .string = "Thanks for playing the game!",
+    .string = "Made by FrodoAlaska",
 
     .font_id   = font_id,
     .font_size = 70.0f,
@@ -75,7 +75,7 @@ void credits_state_init(nikola::Window* window, const nikola::ResourceID& font_i
                    on_credits_layout_click_func);
  
   ui_layout_begin(*layout, UI_ANCHOR_CENTER, nikola::Vec2(0.0f, 40.0f));
-  ui_layout_push_text(*layout, "Replay", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
+  ui_layout_push_text(*layout, "Relive", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
   ui_layout_push_text(*layout, "Quit", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
   ui_layout_end(*layout);
 

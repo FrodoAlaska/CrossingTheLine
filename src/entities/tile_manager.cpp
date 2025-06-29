@@ -90,30 +90,49 @@ void tile_manager_process_input() {
     s_tiles.debug_selection.z -= step;
   }
 
-  if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_1)) {
-    s_tiles.tiles.resize(s_tiles.tiles.size() + 1);
-
-    tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], 
-                s_tiles.level_ref, 
-                TILE_ROAD, 
-                s_tiles.debug_selection);
+  if(!nikola::input_key_down(nikola::KEY_LEFT_SHIFT)) {
+    return;
   }
-  else if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_2)) {
-    s_tiles.tiles.resize(s_tiles.tiles.size() + 1);
 
-    // We elevate the paviment a bit to make it look more "realistic"
-    tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], 
-                s_tiles.level_ref, 
-                TILE_PAVIMENT, 
-                s_tiles.debug_selection + nikola::Vec3(0.0f, 0.3f, 0.0f));
+  nikola::Vec3 position = s_tiles.debug_selection;
+  bool can_create       = false;
+  TileType type;
+
+  if(nikola::input_key_pressed(nikola::KEY_1)) {
+    type       = TILE_ROAD;
+    can_create = true;
   }
-  else if(nikola::input_key_down(nikola::KEY_LEFT_SHIFT) && nikola::input_key_pressed(nikola::KEY_3)) {
-    s_tiles.tiles.resize(s_tiles.tiles.size() + 1);
+  else if(nikola::input_key_pressed(nikola::KEY_2)) {
+    type       = TILE_PAVIMENT;
+    position  += nikola::Vec3(0.0f, 0.3f, 0.0f); // We elevate the paviment a bit to make it look more "realistic"
+    can_create = true;
+  }
+  else if(nikola::input_key_pressed(nikola::KEY_3)) {
+    type       = TILE_CONE;
+    position  += nikola::Vec3(0.0f, 1.5f, 0.0f);
+    can_create = true;
+  }
+  else if(nikola::input_key_pressed(nikola::KEY_4)) {
+    type       = TILE_TUNNEL_ONE_WAY;
+    position  += nikola::Vec3(0.0f, 8.7f, 0.0f);
+    can_create = true;
+  }
+  else if(nikola::input_key_pressed(nikola::KEY_5)) {
+    type       = TILE_TUNNEL_TWO_WAY;
+    position  += nikola::Vec3(-4.0f, 11.5f, 0.0f);
+    can_create = true;
+  }
+  else if(nikola::input_key_pressed(nikola::KEY_6)) {
+    type       = TILE_TUNNEL_THREE_WAY;
+    position  += nikola::Vec3(0.0f, 8.7f, 0.0f);
+    can_create = true;
+  }
+   
+  // Welcome to the family new tile
 
-    tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], 
-                s_tiles.level_ref, 
-                TILE_CONE, 
-                s_tiles.debug_selection + nikola::Vec3(0.0f, 1.5f, 0.0f));
+  if(can_create) {
+    s_tiles.tiles.resize(s_tiles.tiles.size() + 1);
+    tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], s_tiles.level_ref, type, position);
   }
 }
 
@@ -138,6 +157,12 @@ void tile_manager_render() {
       case TILE_CONE:
         nikola::transform_scale(transform, nikola::Vec3(4.0f));
         nikola::renderer_queue_model(resource_database_get(RESOURCE_CONE), transform);
+        break;
+      case TILE_TUNNEL_ONE_WAY:
+      case TILE_TUNNEL_TWO_WAY:
+      case TILE_TUNNEL_THREE_WAY:
+        nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
+        nikola::renderer_queue_model(resource_database_get(RESOURCE_TUNNEL), transform);
         break;
     }
   }
@@ -172,10 +197,10 @@ void tile_manager_render_gui() {
         entity->start_pos = position;
       }
       
-      // Scale
-      nikola::Vec3 scale = nikola::collider_get_extents(entity->collider);
-      if(ImGui::DragFloat3("Scale", &scale[0], 0.1f)) {
-        nikola::collider_set_extents(entity->collider, scale);
+      // Collider extents
+      nikola::Vec3 extents = nikola::collider_get_extents(entity->collider);
+      if(ImGui::DragFloat3("Collider Extents", &extents[0], 0.1f)) {
+        nikola::collider_set_extents(entity->collider, extents);
       }
       
       // Rotation
@@ -189,7 +214,7 @@ void tile_manager_render_gui() {
 
       // Type
       int type = (int)s_tiles.tiles[i].type;
-      if(ImGui::Combo("Type", &type, "Road\0Paviment\0Cone\0\0")) {
+      if(ImGui::Combo("Type", &type, "Road\0Paviment\0Cone\0Tunnel (One way)\0Tunnel (Two way)\0Tunnel (Three way)\0\0")) {
         s_tiles.tiles[i].type = (TileType)type;
       }
       

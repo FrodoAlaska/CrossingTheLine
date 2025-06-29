@@ -65,7 +65,7 @@ void sound_manager_init() {
     ResourceType res_type = (ResourceType)((nikola::sizei)(RESOURCE_SOUND_DEATH + i));
 
     nikola::AudioSourceDesc audio_desc; 
-    audio_desc.volume        = 0.3f; 
+    audio_desc.volume        = 0.5f; 
     audio_desc.buffers_count = 1; 
     audio_desc.buffers[0]    = nikola::resources_get_audio_buffer(resource_database_get(res_type));
 

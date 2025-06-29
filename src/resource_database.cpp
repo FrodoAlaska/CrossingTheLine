@@ -37,10 +37,11 @@ void resource_database_init() {
 
   // Models init
 
-  s_database.resources[RESOURCE_CAR]   = nikola::resources_get_id(s_database.resource_group, "sedan");
-  s_database.resources[RESOURCE_TRUCK] = nikola::resources_get_id(s_database.resource_group, "delivery");
-  s_database.resources[RESOURCE_COIN]  = nikola::resources_get_id(s_database.resource_group, "gold_key");
-  s_database.resources[RESOURCE_CONE]  = nikola::resources_get_id(s_database.resource_group, "cone");
+  s_database.resources[RESOURCE_CAR]    = nikola::resources_get_id(s_database.resource_group, "sedan");
+  s_database.resources[RESOURCE_TRUCK]  = nikola::resources_get_id(s_database.resource_group, "delivery");
+  s_database.resources[RESOURCE_COIN]   = nikola::resources_get_id(s_database.resource_group, "gold_key");
+  s_database.resources[RESOURCE_CONE]   = nikola::resources_get_id(s_database.resource_group, "cone");
+  s_database.resources[RESOURCE_TUNNEL] = nikola::resources_get_id(s_database.resource_group, "tunnel");
  
   // Sounds init
  

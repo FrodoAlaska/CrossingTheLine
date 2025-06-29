@@ -233,12 +233,16 @@ void level_manager_shutdown() {
 }
 
 void level_manager_reset() {
-  s_manager.current_group = 1;
+  s_manager.current_group = 0;
 
   for(nikola::sizei i = 0; i < LEVEL_GROUPS_MAX; i++) {
     s_manager.groups[i].current_level   = 0;
     s_manager.groups[i].coins_collected = 0;
   }
+
+  // Load the hub level
+  level_unload(s_manager.current_level);
+  level_load(s_manager.current_level, s_manager.groups[0].level_paths[0]);
 }
 
 void level_manager_advance() {

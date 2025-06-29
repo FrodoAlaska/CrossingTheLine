@@ -4,8 +4,10 @@
 #include "resource_database.h"
 #include "sound_manager.h"
 #include "game_event.h"
+#include "fog_shader.h"
 
 #include <nikola/nikola.h>
+#include <imgui/imgui.h>
 
 /// ----------------------------------------------------------------------
 /// Macros
@@ -22,12 +24,31 @@ struct nikola::App {
   
   StateType current_state;
   StateDesc states[STATES_MAX];
+
+  float fog_density      = 9.0f;
+  nikola::Vec3 fog_color = nikola::Vec3(0.5f);
 };
 /// App
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// Callbacks
+
+static void fog_pass_fn(const nikola::RenderPass* previous, nikola::RenderPass* current, void* user_data) {
+  nikola::App* app = (nikola::App*)user_data;
+
+  // Get both the previous pass's color buffer and depth-stencil buffers
+  current->frame_desc.attachments[0] = previous->frame_desc.attachments[0];
+  current->frame_desc.attachments[1] = previous->frame_desc.attachments[1];
+
+  // Update shader uniforms
+  
+  nikola::Camera current_camera = level_manager_get_current_level()->frame.camera;
+  nikola::ShaderContext* ctx    = nikola::resources_get_shader_context(current->shader_context_id);
+
+  nikola::shader_context_set_uniform(ctx, "u_fog_density", app->fog_density);
+  nikola::shader_context_set_uniform(ctx, "u_fog_color", app->fog_color);
+}
 
 static void on_state_change(const GameEvent& event, void* dispatcher, void* listener) {
   NIKOLA_ASSERT((event.state_type >= STATE_MENU && event.state_type < STATES_MAX), "Invalid State ID given to event");
@@ -50,6 +71,29 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
 
 /// ----------------------------------------------------------------------
 /// Private functions
+
+static void init_render_passes(nikola::App* app) {
+  // Push the shader context to use
+  nikola::ResourceID fog_shader_id     = nikola::resources_push_shader(nikola::RESOURCE_CACHE_ID, generate_fog_shader()); 
+  nikola::ResourceID shader_context_id = nikola::resources_push_shader_context(nikola::RESOURCE_CACHE_ID, fog_shader_id);
+
+  // Get the size of the window
+  int width, height;
+  nikola::window_get_size(app->window, &width, &height);
+
+  // Fog pass init
+  nikola::RenderPassDesc fog_pass = {
+    .frame_size        = nikola::Vec2(width, height), 
+    .clear_color       = nikola::Vec4(1.0f),
+    .clear_flags       = (nikola::GFX_CLEAR_FLAGS_COLOR_BUFFER | nikola::GFX_CLEAR_FLAGS_DEPTH_BUFFER),
+    .shader_context_id = shader_context_id,
+  };
+  fog_pass.targets.push_back(nikola::RenderTarget{
+      .type   = nikola::GFX_TEXTURE_RENDER_TARGET, 
+      .format = nikola::GFX_TEXTURE_FORMAT_RGBA8,
+  });
+  nikola::renderer_push_pass(fog_pass, fog_pass_fn, app);
+}
 
 static void init_states(nikola::App* app) {
   // Menu state init 
@@ -127,6 +171,9 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
   nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
   nikola::physics_world_set_iterations_count(5);
 
+  // @TODO: Render pass init
+  // init_render_passes(app);
+
   // Resources init
   resource_database_init();
 
@@ -183,6 +230,13 @@ void app_render_gui(nikola::App* app) {
   
   // Level GUI
   level_manager_render_gui();
+  
+  if(level_manager_get_current_level()->has_editor) {
+    nikola::gui_begin_panel("Post-Processing");
+    ImGui::DragFloat3("Fog color", &app->fog_color[0], 0.1f);
+    ImGui::DragFloat("Fog density", &app->fog_density, 0.1f);
+    nikola::gui_end_panel();
+  }
 
   nikola::gui_end();
 #endif

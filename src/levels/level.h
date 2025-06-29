@@ -95,6 +95,8 @@ struct Level {
   nikola::Vec3 current_lerp_point;
 
   UIText pause_text;
+  UILayout pause_layout;
+
   bool is_paused = false;
   
   // Debug stuff

@@ -1,6 +1,8 @@
 #include "states/state.h"
 #include "ui/ui.h"
 #include "game_event.h"
+#include "sound_manager.h"
+#include "levels/level.h"
 
 #include <nikola/nikola.h>
 
@@ -21,6 +23,7 @@ static MenuState s_menu;
 static void on_menu_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
   switch(layout.current_option) {
     case 0: // Start
+      level_manager_reset();
       game_event_dispatch(GameEvent {
         .type       = GAME_EVENT_STATE_CHANGED, 
         .state_type = STATE_LEVEL 
@@ -30,6 +33,17 @@ static void on_menu_layout_click_func(UILayout& layout, UIText& text, void* user
       nikola::event_dispatch(nikola::Event{.type = nikola::EVENT_APP_QUIT});
       break;
   }
+}
+
+static void on_state_changed(const GameEvent& event, void* dispatcher, void* listener) {
+  if(event.state_type != STATE_MENU) {
+    return;
+  }
+
+  game_event_dispatch(GameEvent {
+    .type       = GAME_EVENT_MUSIC_PLAYED, 
+    .sound_type = SOUND_MUSIC_WON
+  });
 }
 
 /// Callbacks
@@ -63,6 +77,15 @@ void menu_state_init(nikola::Window* window, const nikola::ResourceID& font_id) 
   ui_layout_push_text(*menu_layout, "Start", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
   ui_layout_push_text(*menu_layout, "Quit", 40.0f, nikola::Vec4(1.0f, 1.0f, 1.0f, 0.0f));
   ui_layout_end(*menu_layout);
+
+  // Play some cool music
+  game_event_dispatch(GameEvent {
+    .type       = GAME_EVENT_MUSIC_PLAYED, 
+    .sound_type = SOUND_MUSIC_WON
+  });
+
+  // Listen to events
+  game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed);
 }
 
 void menu_state_reset() {
