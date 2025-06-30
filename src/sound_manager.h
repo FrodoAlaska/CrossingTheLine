@@ -19,9 +19,8 @@ enum SoundType {
 
   SOUND_AMBIANCE,
   SOUND_HUB,
-  SOUND_MUSIC_WON,
 
-  SOUNDS_MAX = SOUND_MUSIC_WON + 1,
+  SOUNDS_MAX = SOUND_HUB + 1,
 };
 /// SoundType
 /// ----------------------------------------------------------------------

@@ -42,7 +42,7 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
 
   game_event_dispatch(GameEvent {
     .type       = GAME_EVENT_MUSIC_PLAYED, 
-    .sound_type = SOUND_MUSIC_WON
+    .sound_type = SOUND_HUB
   });
 }
 
@@ -81,7 +81,7 @@ void menu_state_init(nikola::Window* window, const nikola::ResourceID& font_id) 
   // Play some cool music
   game_event_dispatch(GameEvent {
     .type       = GAME_EVENT_MUSIC_PLAYED, 
-    .sound_type = SOUND_MUSIC_WON
+    .sound_type = SOUND_HUB
   });
 
   // Listen to events

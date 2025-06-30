@@ -42,7 +42,7 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
 
   GameEvent sound_event = {
     .type       = GAME_EVENT_MUSIC_PLAYED, 
-    .sound_type = SOUND_MUSIC_WON,
+    .sound_type = SOUND_HUB,
   };
   game_event_dispatch(sound_event);
  

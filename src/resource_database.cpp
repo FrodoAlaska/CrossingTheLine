@@ -58,8 +58,7 @@ void resource_database_init() {
   s_database.resources[RESOURCE_SOUND_TILE_PAVIMENT] = nikola::resources_get_id(s_database.resource_group, "sfx_paviment");
   
   s_database.resources[RESOURCE_MUSIC_AMBIANCE] = nikola::resources_get_id(s_database.resource_group, "music_ambiance");
-  s_database.resources[RESOURCE_MUSIC_HUB]      = nikola::resources_get_id(s_database.resource_group, "music_nocturne");
-  s_database.resources[RESOURCE_MUSIC_WON]      = nikola::resources_get_id(s_database.resource_group, "music_won");
+  s_database.resources[RESOURCE_MUSIC_HUB]      = nikola::resources_get_id(s_database.resource_group, "music_won");
 
   // Font init 
   s_database.resources[RESOURCE_FONT] = nikola::resources_get_id(s_database.resource_group, "iosevka_bold");

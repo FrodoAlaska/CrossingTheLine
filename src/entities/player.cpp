@@ -62,7 +62,7 @@ void player_update(Player& player) {
   //
   // @TODO: Perhaps using something better than lerp for a smoother transition?
   nikola::Camera* camera = &player.entity.level_ref->main_camera;
-  camera->position.x = nikola::lerp(camera->position.x, nikola::physics_body_get_position(player.entity.body).x - 30.0f, nikola::niclock_get_delta_time() * 2.0f);
+  camera->position.x = nikola::lerp(camera->position.x, nikola::physics_body_get_position(player.entity.body).x - 20.0f, nikola::niclock_get_delta_time() * 2.0f);
 }
 
 void player_set_active(Player& player, const bool active) {

@@ -171,7 +171,7 @@ Level* level_create(nikola::Window* window) {
 
   // Lerp points init
 
-  lvl->lerp_points[LERP_POINT_START]   = nikola::Vec3(-42.0f, 8.0f, 10.0f);
+  lvl->lerp_points[LERP_POINT_START]   = nikola::Vec3(-42.0f, 10.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_WIN]     = nikola::Vec3(50.0f, 80.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_LOSE]    = nikola::Vec3(-61.0f, -55.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_DEFAULT] = nikola::Vec3(100.0f, 55.0f, 10.0f);
@@ -423,6 +423,7 @@ void level_render_gui(Level* lvl) {
     ImGui::SameLine();
     if(ImGui::Button("Reset level")) {
       level_reset(lvl);
+      nikola::physics_world_set_paused(true);
     }
   }
 

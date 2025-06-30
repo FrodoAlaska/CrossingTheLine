@@ -19,11 +19,11 @@ void vehicle_create(Vehicle* v,
   // Each vehicle type has a different scale and collider offset
   switch(type) {
     case VEHICLE_CAR:
-      collider_scale  = nikola::Vec3(5.0f, 4.9f, 9.6f);
+      collider_scale  = nikola::Vec3(5.0f, 4.9f, 9.0f);
       collider_offset = nikola::Vec3(0.0f, 2.5f, 0.0f);
       break;
     case VEHICLE_TRUCK:
-      collider_scale  = nikola::Vec3(7.7f, 8.0f, 18.0f);
+      collider_scale  = nikola::Vec3(7.5f, 8.0f, 17.0f);
       collider_offset = nikola::Vec3(0.0f, 4.2f, 0.0f);
       break;
   }

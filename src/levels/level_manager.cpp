@@ -48,6 +48,7 @@ struct LevelGroup {
 /// ----------------------------------------------------------------------
 /// LevelManager 
 struct LevelManager {
+  NKData data;
   Level* current_level = nullptr;
 
   LevelGroup groups[LEVEL_GROUPS_MAX];
@@ -159,22 +160,22 @@ static void save_nkdata_file() {
     return;
   }
 
-  NKData data = {
-    .current_group   = (nikola::u8)s_manager.current_group, 
-    .coins_collected = (nikola::u8)s_manager.groups[s_manager.current_group].coins_collected,
-  };
+  if(s_manager.current_group > s_manager.data.current_group) {
+    s_manager.data.current_group = (nikola::u8)s_manager.current_group;
+  }
+  s_manager.data.coins_collected = (nikola::u8)s_manager.groups[s_manager.current_group].coins_collected,
 
   // Save current group
-  nikola::file_write_bytes(file, &data.current_group, sizeof(data.current_group));
+  nikola::file_write_bytes(file, &s_manager.data.current_group, sizeof(s_manager.data.current_group));
 
   // Save coins collected
-  nikola::file_write_bytes(file, &data.coins_collected, sizeof(data.coins_collected));
+  nikola::file_write_bytes(file, &s_manager.data.coins_collected, sizeof(s_manager.data.coins_collected));
 
   // Save volume settings
 
-  nikola::file_write_bytes(file, &data.master_volume, sizeof(data.master_volume));
-  nikola::file_write_bytes(file, &data.music_volume, sizeof(data.music_volume));
-  nikola::file_write_bytes(file, &data.sfx_volume, sizeof(data.sfx_volume));
+  nikola::file_write_bytes(file, &s_manager.data.master_volume, sizeof(s_manager.data.master_volume));
+  nikola::file_write_bytes(file, &s_manager.data.music_volume, sizeof(s_manager.data.music_volume));
+  nikola::file_write_bytes(file, &s_manager.data.sfx_volume, sizeof(s_manager.data.sfx_volume));
   
   nikola::file_close(file);
 }
@@ -295,8 +296,7 @@ void level_manager_shutdown() {
 }
 
 void level_manager_reset() {
-  NKData data; 
-  load_nkdata_file(&data, "data.nkdata");
+  load_nkdata_file(&s_manager.data, "data.nkdata");
 
   // We are assuming that all of the previous levels 
   // before the current group were completed, since 
@@ -304,7 +304,7 @@ void level_manager_reset() {
   // the next group.
   //
   // Probably not the best idea, but it works.
-  for(nikola::sizei i = 0; i < data.current_group; i++) {
+  for(nikola::sizei i = 0; i < s_manager.data.current_group; i++) {
     LevelGroup* group = &s_manager.groups[i];
 
     group->coins_collected = group->level_paths.size();
@@ -313,8 +313,8 @@ void level_manager_reset() {
 
   // Loading the settings of the current group
   
-  s_manager.current_group                                   = data.current_group;
-  s_manager.groups[s_manager.current_group].coins_collected = data.coins_collected; 
+  s_manager.current_group                                   = s_manager.data.current_group;
+  s_manager.groups[s_manager.current_group].coins_collected = s_manager.data.coins_collected; 
   s_manager.groups[s_manager.current_group].is_locked       = false;
 
   // Load the hub level
