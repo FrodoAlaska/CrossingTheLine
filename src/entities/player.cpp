@@ -9,7 +9,7 @@
 /// ----------------------------------------------------------------------
 /// Consts
 
-const float PLAYER_SPEED = 10.8f;
+const float PLAYER_SPEED = 11.2f;
 
 /// Consts
 /// ----------------------------------------------------------------------
@@ -61,8 +61,11 @@ void player_update(Player& player) {
   // Make the camera follow the player's X position. 
   //
   // @TODO: Perhaps using something better than lerp for a smoother transition?
+  
   nikola::Camera* camera = &player.entity.level_ref->main_camera;
-  camera->position.x = nikola::lerp(camera->position.x, nikola::physics_body_get_position(player.entity.body).x - 20.0f, nikola::niclock_get_delta_time() * 2.0f);
+  nikola::Vec3 position  = nikola::physics_body_get_position(player.entity.body);
+  
+  camera->position.x = nikola::lerp(camera->position.x, position.x - 20.0f, nikola::niclock_get_delta_time() * 2.0f);
 }
 
 void player_set_active(Player& player, const bool active) {

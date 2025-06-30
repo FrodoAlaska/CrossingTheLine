@@ -171,7 +171,7 @@ Level* level_create(nikola::Window* window) {
 
   // Lerp points init
 
-  lvl->lerp_points[LERP_POINT_START]   = nikola::Vec3(-42.0f, 10.0f, 10.0f);
+  lvl->lerp_points[LERP_POINT_START]   = nikola::Vec3(-48.0f, 20.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_WIN]     = nikola::Vec3(50.0f, 80.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_LOSE]    = nikola::Vec3(-61.0f, -55.0f, 10.0f);
   lvl->lerp_points[LERP_POINT_DEFAULT] = nikola::Vec3(100.0f, 55.0f, 10.0f);
@@ -187,8 +187,8 @@ Level* level_create(nikola::Window* window) {
     .move_func    = nullptr,
   };
   nikola::camera_create(&lvl->main_camera, cam_desc);
-  lvl->main_camera.yaw   = 360.0f;
-  lvl->main_camera.pitch = -9.7f;
+  lvl->main_camera.yaw   = 0.6f;
+  lvl->main_camera.pitch = -25.0f;
   lvl->main_camera.far   = 120.0f;
 
   // GUI camera init
@@ -360,6 +360,8 @@ void level_render_gui(Level* lvl) {
 
   // Camera  
   if(ImGui::CollapsingHeader("Camera")) {
+    ImGui::DragFloat3("Lerp point", &lvl->current_lerp_point[0], -0.1f);
+
     nikola::gui_edit_camera("Main camera", &lvl->main_camera);
     nikola::gui_edit_camera("GUI camera", &lvl->gui_camera);
   }
