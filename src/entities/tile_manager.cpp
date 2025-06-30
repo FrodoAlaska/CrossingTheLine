@@ -165,12 +165,17 @@ void tile_manager_render() {
         nikola::renderer_queue_model(resource_database_get(RESOURCE_TUNNEL), transform);
         break;
     }
+  
+    if(s_tiles.level_ref->debug_mode) {
+      nikola::renderer_debug_collider(tile.entity.collider, nikola::Vec3(1.0f, 0.0f, 1.0f));
+    }
   }
   
   // Render debug tile selection
   if(s_tiles.level_ref->debug_mode) {
     nikola::transform_translate(transform, s_tiles.debug_selection);
     nikola::transform_scale(transform, nikola::Vec3(TILE_SIZE, 1.0f, TILE_SIZE));
+
     nikola::renderer_debug_cube(transform, nikola::Vec4(1.0f, 0.0f, 1.0f, 0.2f));
   }
 }
@@ -198,11 +203,8 @@ void tile_manager_render_gui() {
       }
       
       // Collider extents
-      nikola::Vec3 extents = nikola::collider_get_extents(entity->collider);
-      if(ImGui::DragFloat3("Collider Extents", &extents[0], 0.1f)) {
-        nikola::collider_set_extents(entity->collider, extents);
-      }
-      
+      nikola::gui_edit_collider("Collider", entity->collider); 
+
       // Rotation
       float rotation = nikola::physics_body_get_rotation(entity->body).w * nikola::RAD2DEG;
       if(ImGui::DragFloat("Rotation", &rotation, 45.0f)) {
