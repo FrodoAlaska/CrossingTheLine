@@ -10,6 +10,8 @@ enum InputAction {
   
   INPUT_ACTION_NAVIGATE_UP,
   INPUT_ACTION_NAVIGATE_DOWN,
+  INPUT_ACTION_NAVIGATE_LEFT,
+  INPUT_ACTION_NAVIGATE_RIGHT,
 };
 /// InputAction
 /// ----------------------------------------------------------------------

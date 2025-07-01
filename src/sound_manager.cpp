@@ -60,12 +60,28 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
 /// Sound manager functions 
 
 void sound_manager_init() {
-  // Audio sources init
-  for(nikola::sizei i = 0; i < SOUNDS_MAX; i++) {
+  // Extract volumes from NKData
+  float master_volume, music_volume, sfx_volume;
+  nkdata_file_get_volume_data(&master_volume, &master_volume, &sfx_volume);
+
+  // Sound effects init
+  for(nikola::sizei i = SOUND_DEATH; i <= SOUND_TILE_PAVIMENT; i++) {
     ResourceType res_type = (ResourceType)((nikola::sizei)(RESOURCE_SOUND_DEATH + i));
 
     nikola::AudioSourceDesc audio_desc; 
-    audio_desc.volume        = 0.0f; 
+    audio_desc.volume        = sfx_volume; 
+    audio_desc.buffers_count = 1; 
+    audio_desc.buffers[0]    = nikola::resources_get_audio_buffer(resource_database_get(res_type));
+
+    s_manager.entries[i] = nikola::audio_source_create(audio_desc); 
+  }
+
+  // Music init
+  for(nikola::sizei i = SOUND_AMBIANCE; i < SOUNDS_MAX; i++) {
+    ResourceType res_type = (ResourceType)((nikola::sizei)(RESOURCE_SOUND_DEATH + i));
+
+    nikola::AudioSourceDesc audio_desc; 
+    audio_desc.volume        = music_volume; 
     audio_desc.buffers_count = 1; 
     audio_desc.buffers[0]    = nikola::resources_get_audio_buffer(resource_database_get(res_type));
 
@@ -73,7 +89,9 @@ void sound_manager_init() {
   }
 
   // Audio listener init
-  nikola::AudioListenerDesc listen_desc = {};
+  nikola::AudioListenerDesc listen_desc = {
+    .volume = master_volume,
+  };
   nikola::audio_listener_init(listen_desc); 
 
   // Listen to events
@@ -88,6 +106,21 @@ void sound_manager_shutdown() {
   // Sources destroy
   for(nikola::sizei i = 0; i < SOUNDS_MAX; i++) {
     nikola::audio_source_destroy(s_manager.entries[i]);
+  }
+}
+
+void sound_manager_set_volume(const float master, const float music, const float sfx) {
+  // Set master volume
+  nikola::audio_listener_set_volume(master);
+
+  // Set music volume
+  for(nikola::sizei i = SOUND_AMBIANCE; i < SOUNDS_MAX; i++) {
+    nikola::audio_source_set_volume(s_manager.entries[i], music);
+  }
+
+  // Set sound effects volume
+  for(nikola::sizei i = SOUND_DEATH; i <= SOUND_TILE_PAVIMENT; i++) {
+    nikola::audio_source_set_volume(s_manager.entries[i], sfx);
   }
 }
 

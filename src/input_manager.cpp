@@ -16,6 +16,10 @@ static const bool get_key_action_pressed(const InputAction action) {
       return nikola::input_key_pressed(nikola::KEY_UP) || nikola::input_key_pressed(nikola::KEY_W);
     case INPUT_ACTION_NAVIGATE_DOWN:
       return nikola::input_key_pressed(nikola::KEY_DOWN) || nikola::input_key_pressed(nikola::KEY_S);
+    case INPUT_ACTION_NAVIGATE_LEFT:
+      return nikola::input_key_pressed(nikola::KEY_LEFT) || nikola::input_key_pressed(nikola::KEY_A);
+    case INPUT_ACTION_NAVIGATE_RIGHT:
+      return nikola::input_key_pressed(nikola::KEY_RIGHT) || nikola::input_key_pressed(nikola::KEY_D);
     default:
       return false;
   } 
@@ -33,6 +37,10 @@ static const bool get_gamepad_action_pressed(const InputAction action) {
       return nikola::input_gamepad_button_pressed(nikola::JOYSTICK_ID_0, nikola::GAMEPAD_BUTTON_DPAD_UP);
     case INPUT_ACTION_NAVIGATE_DOWN:
       return nikola::input_gamepad_button_pressed(nikola::JOYSTICK_ID_0, nikola::GAMEPAD_BUTTON_DPAD_DOWN);
+    case INPUT_ACTION_NAVIGATE_LEFT:
+      return nikola::input_gamepad_button_pressed(nikola::JOYSTICK_ID_0, nikola::GAMEPAD_BUTTON_DPAD_LEFT);
+    case INPUT_ACTION_NAVIGATE_RIGHT:
+      return nikola::input_gamepad_button_pressed(nikola::JOYSTICK_ID_0, nikola::GAMEPAD_BUTTON_DPAD_LEFT);
     default:
       return false;
   } 

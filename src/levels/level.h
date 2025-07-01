@@ -93,6 +93,7 @@ struct Level {
 
   nikola::Vec3 lerp_points[4];
   nikola::Vec3 current_lerp_point;
+  nikola::Vec3 current_light_color;
 
   UIText pause_text;
   UILayout pause_layout;
@@ -115,6 +116,24 @@ const bool nklvl_file_load(NKLevelFile* nklvl, const nikola::FilePath& path);
 void nklvl_file_save(const NKLevelFile& nklvl);
 
 /// NKLevelFile functions
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// NKData functions
+
+const bool nkdata_file_load(const nikola::FilePath& path);
+
+void nkdata_file_save_current();
+
+void nkdata_file_set_volume_data(const float master, const float music, const float sfx);
+
+void nkdata_file_get_volume_data(float* master, float* music, float* sfx);
+
+void nkdata_file_set_level_data(const nikola::u8 current_group, const nikola::u8 coins_collected);
+
+void nkdata_file_get_level_data(nikola::u8* current_group, nikola::u8* coins_collected);
+
+/// NKData functions
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------

@@ -18,7 +18,7 @@ void tile_create(Tile* tile, Level* lvl, const TileType type, const nikola::Vec3
       position.y = -1.2f; 
       break;
     case TILE_TUNNEL_ONE_WAY:
-      scale      = nikola::Vec3(1.5f, 2.0, 1.0f);
+      scale      = nikola::Vec3(1.5f, 2.0f, 1.0f);
       offset     = nikola::Vec3(0.0f, 9.0f, 0.0f);
       position.y = 5.3f;
       break;

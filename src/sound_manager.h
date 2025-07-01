@@ -32,5 +32,7 @@ void sound_manager_init();
 
 void sound_manager_shutdown();
 
+void sound_manager_set_volume(const float master, const float music, const float sfx);
+
 /// Sound manager functions 
 /// ----------------------------------------------------------------------

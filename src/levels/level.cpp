@@ -103,6 +103,12 @@ static void on_state_changed(const GameEvent& event, void* dispatcher, void* lis
   }
 }
 
+static void on_key_collected(const GameEvent& event, void* dispatcher, void* listener) {
+  Level* lvl = (Level*)listener;
+  
+  lvl->current_light_color = nikola::Vec3(0.0f);
+}
+
 static void on_pause_layout_click_func(UILayout& layout, UIText& text, void* user_data) {
   Level* lvl = (Level*)user_data;
 
@@ -202,6 +208,7 @@ Level* level_create(nikola::Window* window) {
   // Listen to events
   nikola::event_listen(nikola::EVENT_MOUSE_SCROLL_WHEEL, mouse_scroll_event, &lvl->gui_camera);
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed, lvl);
+  game_event_listen(GAME_EVENT_COIN_COLLECTED, on_key_collected, lvl);
 
   // Current camera init
   lvl->frame.camera   = lvl->main_camera;
@@ -222,7 +229,15 @@ Level* level_create(nikola::Window* window) {
   // Lights init
   lvl->frame.dir_light.direction = nikola::Vec3(-1.0f);
   lvl->frame.dir_light.color     = nikola::Vec3(0.5f);
-  lvl->frame.ambient             = nikola::Vec3(0.5f);
+  lvl->frame.ambient             = nikola::Vec3(0.4f);
+
+  // Point light init
+  lvl->current_light_color = nikola::Vec3(4.0f, 4.0f, 0.5f); 
+  nikola::PointLight point = {
+    .position = nikola::Vec3(2000.0f),
+    .color    = lvl->current_light_color,
+  };
+  lvl->frame.point_lights.push_back(point);
 
   return lvl;
 }
@@ -240,6 +255,18 @@ bool level_load(Level* lvl, const nikola::FilePath& path) {
 
   // Reset the camera
   lvl->main_camera.position = lvl->lerp_points[LERP_POINT_DEFAULT];
+
+  // Reset the light
+  if(lvl->nkbin.has_coin) {
+    lvl->frame.point_lights[0].position   = lvl->nkbin.coin_position;
+    lvl->frame.point_lights[0].position.y = 2.0f;
+
+    lvl->current_light_color = nikola::Vec3(4.0f, 4.0f, 0.5f);
+  }
+  else {
+    lvl->frame.point_lights[0].position = nikola::Vec3(-2000.0f);
+    lvl->current_light_color            = nikola::Vec3(0.0f);
+  }
 
   // Load entities
   entity_manager_load();
@@ -321,9 +348,15 @@ void level_update(Level* lvl) {
     return;
   }
 
+  float delta = nikola::niclock_get_delta_time() * 1.5f;
+
   // Keep lerping the camera which is honestly a bad idea
   nikola::Camera* camera = &lvl->main_camera;
-  camera->position       = nikola::vec3_lerp(camera->position, lvl->current_lerp_point, nikola::niclock_get_delta_time() * 1.5f);
+  camera->position       = nikola::vec3_lerp(camera->position, lvl->current_lerp_point, delta);
+
+  // Also not a good idea, but lerp the point light color as well
+  nikola::PointLight* light = &lvl->frame.point_lights[0];
+  light->color              = nikola::vec3_lerp(light->color, lvl->current_light_color, delta);
 
   // Update entities
   entity_manager_update();

@@ -70,6 +70,7 @@ set(PROJECT_SOURCES
   # Level
   ${PROJECT_SRC_DIR}/levels/level.cpp
   ${PROJECT_SRC_DIR}/levels/nklvl.cpp
+  ${PROJECT_SRC_DIR}/levels/nkdata.cpp
   ${PROJECT_SRC_DIR}/levels/level_manager.cpp
 
   # UI 
