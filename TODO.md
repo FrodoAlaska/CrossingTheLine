@@ -6,13 +6,11 @@
 
 - Polish points: 
     - The physics needs work. The player goes through the floor way too many times. 
-     - Make the player a dynamic body 
-     - Hang the player's collider a little lower 
-     - Keep the current movement
-     - (That way there will be collision detection and resolution with the kinematic movement)
-    
-    - There's a noticable transition in the main menu 
-    - Maybe get a better sound for the key?
+        - Make the player a dynamic body 
+        - Hang the player's collider a little lower 
+        - Keep the current movement
+        - (That way there will be collision detection and resolution with the kinematic movement)
+    - Polish the dialogue
 
 ## Fixes 
 
