@@ -11,6 +11,9 @@
         - Keep the current movement
         - (That way there will be collision detection and resolution with the kinematic movement)
     - Polish the dialogue
+        - Some words are too big even for the wrap. You need to wrap early for them specifically 
+        - You _have_ to associate each level a line of dialogue. Currently, it works. Until it doesn't. Fix.
+        - The actual writing 
 
 ## Fixes 
 
