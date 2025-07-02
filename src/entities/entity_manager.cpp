@@ -28,18 +28,35 @@ static EntityManager s_entt;
 /// ----------------------------------------------------------------------
 /// Private functions
 
-static void resolve_player_collisions(Entity* player, Entity* other) {
+static void resolve_player_begin_collisions(Entity* player, Entity* other) {
   Level* lvl = player->level_ref;
 
   switch(other->type) {
     case ENTITY_VEHICLE:
-      player->is_active = false;
-      nikola::physics_body_set_awake(player->body, false);
+      player_set_active(s_entt.player, false);
 
       game_event_dispatch(GameEvent{
         .type       = GAME_EVENT_STATE_CHANGED, 
         .state_type = STATE_LOST
       });
+      break;
+    case ENTITY_END_POINT:
+      player_set_active(s_entt.player, false);
+      game_event_dispatch(GameEvent{
+        .type       = GAME_EVENT_STATE_CHANGED, 
+        .state_type = STATE_WON
+      });
+      break;
+    case ENTITY_VEHICLE_POINT: 
+    case ENTITY_DEATH_POINT: 
+      player_set_active(s_entt.player, false);
+      game_event_dispatch(GameEvent{
+        .type       = GAME_EVENT_STATE_CHANGED, 
+        .state_type = STATE_LOST
+      });
+      break;
+    case ENTITY_CHAPTER_POINT: 
+      game_event_dispatch(GameEvent{.type = GAME_EVENT_CHAPTER_ENTERED}, other);
       break;
     case ENTITY_COIN:
       other->is_active = false; 
@@ -50,6 +67,18 @@ static void resolve_player_collisions(Entity* player, Entity* other) {
         .type       = GAME_EVENT_SOUND_PLAYED, 
         .sound_type = SOUND_KEY_COLLECT,
       });
+      break;
+    default: 
+      break;
+  }
+}
+
+static void resolve_player_end_collisions(Entity* player, Entity* other) {
+  Level* lvl = player->level_ref;
+
+  switch(other->type) {
+    case ENTITY_CHAPTER_POINT: 
+      game_event_dispatch(GameEvent{.type = GAME_EVENT_CHAPTER_EXITED}, other);
       break;
     default: 
       break;
@@ -69,7 +98,7 @@ static void resolve_vehicle_collisions(Entity* vehicle, Entity* other) {
 /// ----------------------------------------------------------------------
 /// Callbacks
 
-static void on_entity_collision(const nikola::CollisionPoint& point) {
+static void on_entity_begin_collision(const nikola::CollisionPoint& point) {
   // Getting the entities
   Entity* entt_a = (Entity*)nikola::physics_body_get_user_data(point.body_a);
   Entity* entt_b = (Entity*)nikola::physics_body_get_user_data(point.body_b);
@@ -85,10 +114,10 @@ static void on_entity_collision(const nikola::CollisionPoint& point) {
   // Player collisions
   
   if(entt_a->type == ENTITY_PLAYER) {
-    resolve_player_collisions(entt_a, entt_b);
+    resolve_player_begin_collisions(entt_a, entt_b);
   }
   else if(entt_b->type == ENTITY_PLAYER) {
-    resolve_player_collisions(entt_b, entt_a);
+    resolve_player_begin_collisions(entt_b, entt_a);
   }
 
   // Vehicle collisions
@@ -98,6 +127,29 @@ static void on_entity_collision(const nikola::CollisionPoint& point) {
   }
   else if(entt_b->type == ENTITY_VEHICLE) {
     resolve_vehicle_collisions(entt_b, entt_a);
+  }
+}
+
+static void on_entity_end_collision(const nikola::CollisionPoint& point) {
+  // Getting the entities
+  Entity* entt_a = (Entity*)nikola::physics_body_get_user_data(point.body_a);
+  Entity* entt_b = (Entity*)nikola::physics_body_get_user_data(point.body_b);
+
+  // @NOTE: Yeah. Terrible. I know.
+
+  // This might cause problems, but we do not 
+  // care for entities that are inactive. 
+  if(!entt_a->is_active || !entt_b->is_active) {
+    return;
+  }
+
+  // Player collisions
+  
+  if(entt_a->type == ENTITY_PLAYER) {
+    resolve_player_end_collisions(entt_a, entt_b);
+  }
+  else if(entt_b->type == ENTITY_PLAYER) {
+    resolve_player_end_collisions(entt_b, entt_a);
   }
 }
 
@@ -112,7 +164,7 @@ void entity_manager_create(Level* level_ref) {
   s_entt.level_ref = level_ref;
  
   // Physics world callback init
-  nikola::physics_world_set_collision_callback(on_entity_collision, nullptr); 
+  nikola::physics_world_set_collision_callback(on_entity_begin_collision, on_entity_end_collision); 
 }
 
 void entity_manager_destroy() {
@@ -256,44 +308,8 @@ void entity_manager_update() {
     nikola::physics_body_set_angular_velocity(s_entt.coin.body, nikola::Vec3(0.0f, 1.5f, 0.0f));
   } 
 
-  // AABB tests (only if the player is active)
-  
-  if(!s_entt.player.entity.is_active) {
-    return;
-  }
-
-  // Points test
-  for(auto& point : s_entt.points) {
-    if(!entity_aabb_test(s_entt.player.entity, point)) {
-      continue;
-    }
-
-    switch(point.type) {
-      case ENTITY_END_POINT:
-        player_set_active(s_entt.player, false);
-        game_event_dispatch(GameEvent{
-          .type       = GAME_EVENT_STATE_CHANGED, 
-          .state_type = STATE_WON
-        });
-        break;
-      case ENTITY_VEHICLE_POINT: 
-      case ENTITY_DEATH_POINT: 
-        player_set_active(s_entt.player, false);
-        game_event_dispatch(GameEvent{
-          .type       = GAME_EVENT_STATE_CHANGED, 
-          .state_type = STATE_LOST
-        });
-        break;
-      case ENTITY_CHAPTER_POINT: 
-        game_event_dispatch(GameEvent{.type = GAME_EVENT_CHAPTER_CHANGED}, &point);
-        break;
-      default: 
-        break;
-    }
-  }
-
   // Tiles test
-  tile_manager_check_collisions(s_entt.player);
+  // tile_manager_check_collisions(s_entt.player);
 }
 
 void entity_manager_render() {

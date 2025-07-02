@@ -104,7 +104,7 @@ static void init_group_ui(nikola::Window* window, const nikola::ResourceID& font
 
 static nikola::sizei get_index_from_pos(Entity* point) {
   int pos_x = (int)nikola::physics_body_get_position(point->body).x;
-
+  
   switch(pos_x) {
     case -8:
       return 1;
@@ -124,7 +124,8 @@ static nikola::sizei get_index_from_pos(Entity* point) {
 /// Callbacks
 
 static void on_chapter_changed(const GameEvent& event, void* dispatcher, void* listener) {
-  if(event.type != GAME_EVENT_CHAPTER_CHANGED) {
+  if(event.type == GAME_EVENT_CHAPTER_EXITED) {
+    s_manager.selected_group = nullptr;
     return;
   }
 
@@ -220,7 +221,8 @@ void level_manager_init(nikola::Window* window, const nikola::ResourceID& font_i
   init_group_ui(window, font_id);
 
   // Listen to events
-  game_event_listen(GAME_EVENT_CHAPTER_CHANGED, on_chapter_changed);
+  game_event_listen(GAME_EVENT_CHAPTER_ENTERED, on_chapter_changed);
+  game_event_listen(GAME_EVENT_CHAPTER_EXITED, on_chapter_changed);
   game_event_listen(GAME_EVENT_COIN_COLLECTED, on_coin_collected);
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_changed);
 }
@@ -343,6 +345,8 @@ void level_manager_process_input() {
       .type       = GAME_EVENT_STATE_CHANGED, 
       .state_type = STATE_LEVEL
     });
+
+    s_manager.selected_group = nullptr;
   }
 }
 
@@ -361,7 +365,6 @@ void level_manager_render_hud() {
   }
 
   level_render_hud(s_manager.current_level);
-  s_manager.selected_group = nullptr;
 }
 
 void level_manager_render_gui() {
@@ -401,11 +404,9 @@ void level_manager_render_gui() {
   nikola::gui_end_panel(); 
 }
 
-const nikola::sizei level_manager_get_level_index() {
-  LevelGroup* previous_group = &s_manager.groups[s_manager.current_group - 1];
-  LevelGroup* current_group  = &s_manager.groups[s_manager.current_group];
-
-  return (previous_group->current_level + current_group->current_level);
+void level_manager_get_current_indices(nikola::sizei* group_index, nikola::sizei* level_index) {
+  *group_index = s_manager.current_group;
+  *level_index = s_manager.groups[s_manager.current_group].current_level;
 }
 
 Level* level_manager_get_current_level() {

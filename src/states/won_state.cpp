@@ -13,7 +13,7 @@ struct WonState {
   UIText title; 
   UILayout layout; 
 
-  nikola::DynamicArray<nikola::String> lines; 
+  nikola::DynamicArray<nikola::String> lines[LEVEL_GROUPS_MAX]; 
   nikola::sizei current_line = 0;
 
   nikola::Timer animation_timer;
@@ -45,10 +45,13 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
     .sound_type = SOUND_HUB,
   };
   game_event_dispatch(sound_event);
- 
+  
   // Move through the dialogue when the player reaches the end
-  nikola::sizei current_line = level_manager_get_level_index();
-  ui_text_set_string(s_won.title, s_won.lines[current_line]);
+
+  nikola::sizei group_index, level_index;
+  level_manager_get_current_indices(&group_index, &level_index);
+
+  ui_text_set_string(s_won.title, s_won.lines[group_index][level_index]);
 }
 
 /// Callbacks
@@ -78,17 +81,19 @@ static void read_dialogue_file(const nikola::FilePath& txt_path) {
   nikola::file_read_string(file, &dialogue);
 
   // Fill the lines array
-  nikola::String line = ""; 
+  
+  nikola::String line         = ""; 
+  nikola::sizei current_group = 0;
+
   for(nikola::sizei i = 0; i < dialogue.size(); i++) {
     switch(dialogue[i]) {
       case '\n':
         break; 
       case '#':
-        i++;
-        skip_comment(&i, dialogue);
+        current_group++;
         break; 
       case ';':
-        s_won.lines.push_back(line);
+        s_won.lines[current_group].push_back(line);
         line = "";
         break;
       default:

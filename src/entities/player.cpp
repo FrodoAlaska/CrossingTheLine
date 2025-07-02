@@ -18,17 +18,33 @@ const float PLAYER_SPEED = 11.2f;
 /// Player functions
 
 void player_create(Player* player, Level* lvl, const nikola::Vec3& start_pos) {
-  // Entity init
-  entity_create(&player->entity, 
-                lvl, 
-                start_pos, 
-                nikola::Vec3(1.2f, 3.0f, 1.2f),
-                ENTITY_PLAYER, 
-                nikola::PHYSICS_BODY_KINEMATIC);
+  // Entity variables init
+  player->entity.type      = ENTITY_PLAYER;
+  player->entity.level_ref = lvl;
+  player->entity.is_active = true;
+  player->entity.start_pos = start_pos;
   
   // Player variables init
   player->current_footstep_sound = SOUND_TILE_PAVIMENT;
   player->can_move               = true;
+
+  // Body init
+  nikola::PhysicsBodyDesc body_desc = {
+    .position      = player->entity.start_pos, 
+    .type          = nikola::PHYSICS_BODY_DYNAMIC,
+    .user_data     = &player->entity,
+    .locked_axises = nikola::BVec3(true),
+  };
+  player->entity.body = nikola::physics_body_create(body_desc);
+
+  // Collider init
+  nikola::ColliderDesc coll_desc = {
+    .position  = nikola::Vec3(0.0f), 
+    .extents   = nikola::Vec3(1.2f, 3.0f, 1.2f),
+    .friction  = 0.0f,
+    .is_sensor = false,
+  };
+  player->entity.collider = nikola::physics_body_add_collider(player->entity.body, coll_desc);
 }
 
 void player_update(Player& player) {
@@ -37,14 +53,14 @@ void player_update(Player& player) {
   }
 
   // Movement
- 
-  // Apply some gravity if the player is currently not allowed to move
-  if(!player.can_move) {
-    nikola::Vec3 current_velocity = nikola::physics_body_get_linear_velocity(player.entity.body);
-    nikola::physics_body_set_linear_velocity(player.entity.body, nikola::Vec3(current_velocity.x, -9.81f, current_velocity.z));
 
-    return;
-  }
+  // @TODO: Apply some gravity if the player is currently not allowed to move
+  // if(!player.can_move) {
+  //   nikola::Vec3 current_velocity = nikola::physics_body_get_linear_velocity(player.entity.body);
+  //   nikola::physics_body_set_linear_velocity(player.entity.body, nikola::Vec3(current_velocity.x, -9.81f, current_velocity.z));
+  //
+  //   return;
+  // }
 
   // Apply the velocity
   nikola::Vec3 velocity = input_manager_get_movement_velocity() * PLAYER_SPEED;

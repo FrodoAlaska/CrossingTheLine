@@ -183,7 +183,7 @@ void level_manager_render_hud();
 
 void level_manager_render_gui();
 
-const nikola::sizei level_manager_get_level_index();
+void level_manager_get_current_indices(nikola::sizei* group_index, nikola::sizei* level_index);
 
 Level* level_manager_get_current_level();
 
