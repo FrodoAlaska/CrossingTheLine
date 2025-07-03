@@ -41,7 +41,7 @@ void player_create(Player* player, Level* lvl, const nikola::Vec3& start_pos) {
   // Collider init
   nikola::ColliderDesc coll_desc = {
     .position  = nikola::Vec3(0.0f), 
-    .extents   = nikola::Vec3(1.2f, 3.0f, 1.2f),
+    .extents   = nikola::Vec3(1.2f, 3.35f, 1.2f),
     .friction  = 0.0f,
     .is_sensor = false,
   };
@@ -57,12 +57,15 @@ void player_update(Player& player) {
 
   // @TODO: Apply some gravity if the player is currently not allowed to move
   if(!player.can_move) {
-    // nikola::physics_body_apply_force(player.entity.body, nikola::Vec3(0.0f, -9.81f, 0.0f));
+    nikola::physics_body_apply_force(player.entity.body, nikola::Vec3(0.0f, -9.81f, 0.0f));
   }
 
   // Apply the velocity
   nikola::Vec3 velocity = input_manager_get_movement_velocity() * PLAYER_SPEED;
-  nikola::physics_body_set_linear_velocity(player.entity.body, velocity);
+  nikola::Vec3 current_velocity = nikola::physics_body_get_linear_velocity(player.entity.body);
+
+  nikola::physics_body_set_linear_velocity(player.entity.body, 
+                                           nikola::Vec3(velocity.x, current_velocity.y, velocity.z));
 
   // Make the camera follow the player's X position. 
   //

@@ -351,7 +351,7 @@ void entity_manager_render() {
   // Render the player 
  
   transform = nikola::physics_body_get_transform(s_entt.player.entity.body);
-  nikola::transform_scale(transform, nikola::collider_get_extents(s_entt.player.entity.collider));
+  nikola::transform_scale(transform, nikola::Vec3(1.2f, 3.0f, 1.2f));
   nikola::renderer_queue_mesh(resource_database_get(RESOURCE_CUBE), transform);
 
   // Debug rendering

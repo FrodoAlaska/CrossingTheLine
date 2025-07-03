@@ -1,12 +1,9 @@
-# Road to MVP (Minimal Viable Product) 
+# TODO
 
-- Immediate:
-    - Save the dialogue in a binary file instead of a text file for the dist build.
-    - Polish the distribution build
+- Play test a bunch to discover bugs 
+- Save the dialogue in a binary file instead of a text file for the dist build.
+- Polish the distribution build
 
-- Polish points: 
-    - Resolve the player falling through the ground
-
-## Fixes 
+## FIXES 
 
 - Empty... for now
