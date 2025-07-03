@@ -198,18 +198,24 @@ void menu_state_process_input() {
   switch(s_menu.layouts[MENU_SETTINGS].current_option) {
     case 0: // Master volume
       s_menu.master_volume += step;
+      s_menu.master_volume  = nikola::clamp_int(s_menu.master_volume, 0, 100);
+      
       ui_text_set_string(s_menu.layouts[MENU_SETTINGS].texts[0], 
-                         ("Master Volume: " + std::to_string(s_menu.master_volume)));
+                        ("Master Volume: " + std::to_string(s_menu.master_volume)));
       break;
     case 1: // Music volume
       s_menu.music_volume += step; 
+      s_menu.music_volume = nikola::clamp_int(s_menu.music_volume, 0, 100);
+     
       ui_text_set_string(s_menu.layouts[MENU_SETTINGS].texts[1], 
-                         ("Music Volume: " + std::to_string(s_menu.music_volume)));
+                        ("Music Volume: " + std::to_string(s_menu.music_volume)));
       break;
     case 2: // SFX volume
       s_menu.sfx_volume += step; 
+      s_menu.sfx_volume  = nikola::clamp_int(s_menu.sfx_volume, 0, 100);
+      
       ui_text_set_string(s_menu.layouts[MENU_SETTINGS].texts[2], 
-                         ("SFX Volume: " + std::to_string(s_menu.sfx_volume)));
+                        ("SFX Volume: " + std::to_string(s_menu.sfx_volume)));
       break;
     default:
       break;
