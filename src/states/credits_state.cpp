@@ -9,7 +9,7 @@
 /// ----------------------------------------------------------------------
 /// Consts
 
-const nikola::sizei TEXTS_MAX = 9;
+const nikola::sizei TEXTS_MAX = 10;
 
 /// Consts
 /// ----------------------------------------------------------------------
@@ -80,15 +80,15 @@ void credits_state_init(nikola::Window* window, const nikola::ResourceID& font_i
 
     "\n\n\n\nArtists:",
     "\n\n\n\nKenney",
-    "\n\n\n\nAqibGulzar_41"
+    "\n\n\n\nAqibGulzar_41",
     "\n\n\n\nKonvenienZapps",
     "\n\n\n\ncgbookcase (Dorian Zgraggen)",
     "\n\n\n\nzfight",
     
-    "\n\n\n\n\n\nMusicians:",
-    "\n\n\n\n\n\nJoth",
+    "\n\n\n\n\n\n\nMusicians:",
+    "\n\n\n\n\n\n\nJoth",
 
-    "\n\n\n\n\n\n\n\nMade by FrodoAlaska",
+    "\n\n\n\n\n\n\n\n\nMade by FrodoAlaska",
   };
 
   for(nikola::sizei i = 0; i < TEXTS_MAX; i++) {

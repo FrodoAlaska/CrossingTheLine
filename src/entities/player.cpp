@@ -41,7 +41,7 @@ void player_create(Player* player, Level* lvl, const nikola::Vec3& start_pos) {
   // Collider init
   nikola::ColliderDesc coll_desc = {
     .position  = nikola::Vec3(0.0f), 
-    .extents   = nikola::Vec3(1.2f, 3.35f, 1.2f),
+    .extents   = nikola::Vec3(1.2f, 3.4f, 1.2f),
     .friction  = 0.0f,
     .is_sensor = false,
   };

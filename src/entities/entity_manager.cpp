@@ -290,8 +290,9 @@ void entity_manager_save() {
 
 void entity_manager_reset() {
   // Reset the player
-  nikola::physics_body_set_position(s_entt.player.entity.body, s_entt.level_ref->nkbin.start_position);
-  s_entt.player.entity.is_active = true;
+  nikola::Vec3 player_pos = nikola::Vec3(s_entt.level_ref->nkbin.start_position.x, 0.25f, s_entt.level_ref->nkbin.start_position.z);
+  nikola::physics_body_set_position(s_entt.player.entity.body, player_pos);
+  player_set_active(s_entt.player, true);
 
   // Reset the vehicles
   for(auto& v : s_entt.vehicles) {

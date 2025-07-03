@@ -13,7 +13,7 @@ void tile_create(Tile* tile, Level* lvl, const TileType type, const nikola::Vec3
   // Different states depending on the tiles
   switch(type) {
     case TILE_PAVIMENT:
-      position.y = -1.9f; 
+      position.y = -1.95f; 
       break;
     case TILE_CONE:
       scale      = nikola::Vec3(2.0f);

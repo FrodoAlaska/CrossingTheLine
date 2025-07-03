@@ -196,7 +196,7 @@ void won_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
 
   // Timer init
-  nikola::timer_create(&s_won.animation_timer, 3.0f, false);
+  nikola::timer_create(&s_won.animation_timer, 6.0f, false);
 }
 
 void won_state_reset() {
