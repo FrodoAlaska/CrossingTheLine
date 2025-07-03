@@ -6,9 +6,7 @@
 
 - Polish points: 
     - Resolve the player falling through the ground
-    - Polish the dialogue
-        - Some words are too big even for the wrap. You need to wrap early for them specifically 
-        - The actual writing 
+    - Some paviments need to be lowered a bit
 
 ## Fixes 
 

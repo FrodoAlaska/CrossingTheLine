@@ -18,6 +18,9 @@ struct WonState {
 
   nikola::Timer animation_timer;
   nikola::sizei total_characters = 0;
+
+  nikola::sizei char_limit = 0; 
+  float wrap_limit         = 0.0f;
 };
 
 static WonState s_won;
@@ -60,12 +63,39 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
 /// ----------------------------------------------------------------------
 /// Private functions
 
-static void skip_comment(nikola::sizei* index, const nikola::String& source) {
+static void add_string_literal(nikola::sizei* index, const nikola::String& source, const nikola::sizei current_group) {
+  nikola::sizei line_width = 0;
+  nikola::String line;
+
   char ch = source[*index];
-  while(ch != '\n') {
-    *index++;
+  while(ch != '"') {
+    // Ignore new line characters.
+    if(ch != '\n') {
+      line.push_back(ch); 
+      line_width++;
+    }
+
+    // Advance
+    *index += 1;
     ch = source[*index];
+
+    // The checks below only apply when there's a new ' ' character encountered
+    if(ch != ' ') {
+      continue;
+    }
+
+    // The line has been fed enough. We should go to the next line.
+    if(line_width >= s_won.char_limit) {
+      line.push_back('\n');
+      line_width = 0;
+   
+      // Skip the space since it's going to be a new line
+      *index += 1;
+      ch = source[*index];
+    }
   }
+
+  s_won.lines[current_group].push_back(line);
 }
 
 static void read_dialogue_file(const nikola::FilePath& txt_path) {
@@ -82,28 +112,24 @@ static void read_dialogue_file(const nikola::FilePath& txt_path) {
 
   // Fill the lines array
   
-  nikola::String line         = ""; 
   nikola::sizei current_group = 0;
 
   for(nikola::sizei i = 0; i < dialogue.size(); i++) {
     switch(dialogue[i]) {
-      case '\n':
-        break; 
       case '#':
         current_group++;
         break; 
-      case ';':
-        s_won.lines[current_group].push_back(line);
-        line = "";
+      case '"':
+        i++;
+        add_string_literal(&i, dialogue, current_group);
         break;
       default:
-        line += dialogue[i];
         break;
     } 
   }
 
-  file.close();
-  NIKOLA_LOG_DEBUG("Loaded dialogue at \'%s\'", txt_path.c_str());
+  nikola::file_close(file);
+  NIKOLA_LOG_INFO("Loaded dialogue at \'%s\'", txt_path.c_str());
 }
 
 /// Private functions
@@ -137,6 +163,32 @@ void won_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   ui_layout_push_text(*won_layout, "Suffer", 40.0f, nikola::Vec4(1.0f, 0.0f, 0.0f, 0.0f));
   ui_layout_end(*won_layout);
 
+  // Variables init
+  
+  int width, height; 
+  nikola::window_get_size(s_won.title.window_ref, &width, &height);
+
+  /* @NOTE (2/7/2025, Mohamed):
+   * 
+   * The `wrap_limit` is exactly what it sounds. Characters should not go beyond this 
+   * limit. We retrieve this limit dynamically by taking the width of the current window 
+   * and subtract an arbitrary value like the font size * 2. 
+   *
+   * As for `char_limit` is takes into account the current wrap limit to deduce how many 
+   * characters, theoretically, will be on a single line. Since we can't really know _exactly_ 
+   * how many characters are going to be in a single line (different sizes, multiple space, etc), 
+   * we try to approximate by giving it a completely magical number `16.6`. 
+   *
+   * According to my tests, this works on multiple screen resolutions. However, it will only 
+   * work based on the _current_ font size of the title string. I haven't tested it, but I'm 
+   * guessing that if the font size changes that magical number isn't going to be _magical_ anymore.
+   *
+   * Very hacky. Made with glue and tape. But it works nonetheless.
+   *
+   */
+  s_won.wrap_limit = width - s_won.title.font_size * 2.0f;
+  s_won.char_limit = (nikola::sizei)(s_won.wrap_limit / 16.6f); // @TODO: Explain
+
   // Dialogue init
   read_dialogue_file("dialogue.txt");
   
@@ -144,7 +196,7 @@ void won_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
 
   // Timer init
-  nikola::timer_create(&s_won.animation_timer, 8.0f, false);
+  nikola::timer_create(&s_won.animation_timer, 3.0f, false);
 }
 
 void won_state_reset() {
@@ -167,10 +219,6 @@ void won_state_process_input() {
 }
 
 void won_state_render() {
-  // Get the window bounds
-  int width, height; 
-  nikola::window_get_size(s_won.title.window_ref, &width, &height);
-
   // Render the layout
   ui_layout_render_animation(s_won.layout, UI_TEXT_ANIMATION_BLINK, 8.0f);
 
@@ -186,20 +234,20 @@ void won_state_render() {
   
   // Render the dialogue
 
-  nikola::Vec2 off   = nikola::Vec2(0.0f);
-  nikola::Vec2 pos   = nikola::Vec2(20.0f, s_won.title.font_size + 10.0f);
+  nikola::Vec2 off     = nikola::Vec2(0.0f);
+  nikola::Vec2 padding = nikola::Vec2(20.0f); 
+  nikola::Vec2 pos     = nikola::Vec2(padding.x, s_won.title.font_size + padding.y);
+
   float scale        = s_won.title.font_size / 256.0f;
   float prev_advance = 0.0f;
-
-  float wrap_limit = width - s_won.title.font_size - 20.0f;
 
   for(nikola::sizei i = 0; i < s_won.total_characters; i++) {
     char ch             = s_won.title.string[i];
     nikola::Glyph glyph = s_won.title.font->glyphs[ch];
-
+     
     // Take into account the new line
     if(ch == '\n') {
-      off.x = 0.0f;
+      off.x  = 0.0f;
       off.y += s_won.title.font_size + 2.0f;
 
       continue;
@@ -210,18 +258,14 @@ void won_state_render() {
       continue;
     }
    
-    // Add the offsets
-    off.x       += glyph.advance_x * scale;
-    prev_advance = glyph.advance_x;
-
-    // Wrap the character around if needed
-    if((off.x + pos.x) >= wrap_limit) {
-      off.y += s_won.title.font_size + 2.0f;
-      off.x  = pos.x;
-    }
+    // Apply the offsets
+    off.x += glyph.advance_x * scale;
    
-    // Draw the character
-    nikola::batch_render_codepoint(s_won.title.font, ch, pos + off, s_won.title.font_size, s_won.title.color); 
+    // Render the character
+    nikola::batch_render_codepoint(s_won.title.font, ch, pos + off, s_won.title.font_size, s_won.title.color);
+  
+    // Resetting some variables 
+    prev_advance = glyph.advance_x;
   } 
 }
 

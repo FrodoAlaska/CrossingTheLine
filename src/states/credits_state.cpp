@@ -80,6 +80,7 @@ void credits_state_init(nikola::Window* window, const nikola::ResourceID& font_i
 
     "\n\n\n\nArtists:",
     "\n\n\n\nKenney",
+    "\n\n\n\nAqibGulzar_41"
     "\n\n\n\nKonvenienZapps",
     "\n\n\n\ncgbookcase (Dorian Zgraggen)",
     "\n\n\n\nzfight",

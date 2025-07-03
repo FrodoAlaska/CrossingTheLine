@@ -105,6 +105,8 @@ struct UILayout {
 
 void ui_text_create(UIText* text, const nikola::Window* window_ref, const UITextDesc& desc);
 
+const nikola::Vec2 ui_text_measure_size(const nikola::String& str, const UIText& text);
+
 const nikola::Vec2 ui_text_measure_size(const UIText& text);
 
 void ui_text_set_anchor(UIText& text, const UIAnchor anchor);

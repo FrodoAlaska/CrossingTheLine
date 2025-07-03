@@ -55,13 +55,13 @@ void ui_text_create(UIText* text, const nikola::Window* window_ref, const UIText
   text->is_active = true;
 }
 
-const nikola::Vec2 ui_text_measure_size(const UIText& text) {
+const nikola::Vec2 ui_text_measure_size(const nikola::String& str, const UIText& text) {
   nikola::Vec2 result(0.0f, text.font_size);
 
   float font_scale   = (text.font_size / 256.0f); // @TODO: This is an engine problem, but the `256` should be a constant. This is _REALLY_ bad.
   float prev_advance = 0.0f;
 
-  for(auto& ch : text.string) {
+  for(auto& ch : str) {
     nikola::Glyph* glyph = &text.font->glyphs[ch];
      
     // Give some love to the Y-axis as well
@@ -83,6 +83,10 @@ const nikola::Vec2 ui_text_measure_size(const UIText& text) {
   }
 
   return nikola::Vec2(result.x * font_scale, result.y);
+}
+
+const nikola::Vec2 ui_text_measure_size(const UIText& text) {
+  return ui_text_measure_size(text.string, text);
 }
 
 void ui_text_set_anchor(UIText& text, const UIAnchor anchor) {

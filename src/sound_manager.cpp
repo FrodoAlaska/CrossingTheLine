@@ -61,7 +61,9 @@ static void on_state_change(const GameEvent& event, void* dispatcher, void* list
 
 void sound_manager_init() {
   // Extract volumes from NKData
-  float master_volume, music_volume, sfx_volume;
+  float master_volume = 1.0f; 
+  float music_volume  = 1.0f;  
+  float sfx_volume    = 1.0f;
   nkdata_file_get_volume_data(&master_volume, &master_volume, &sfx_volume);
 
   // Sound effects init

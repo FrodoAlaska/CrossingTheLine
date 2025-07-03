@@ -41,7 +41,7 @@ static void on_lost_layout_click_func(UILayout& layout, UIText& text, void* user
 void lost_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   // Title init 
   UITextDesc text_desc = {
-    .string = "To give up is a virtue. Do not continue.\nGive it all up and live a peacful life.",
+    .string = "To give up is a virtue. Do not continue.\nGive it all up and die in peace.",
 
     .font_id   = font_id,
     .font_size = 50.0f,
