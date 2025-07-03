@@ -106,13 +106,13 @@ static nikola::sizei get_index_from_pos(Entity* point) {
   int pos_x = (int)nikola::physics_body_get_position(point->body).x;
   
   switch(pos_x) {
-    case -8:
-      return 1;
     case 0:
+      return 1;
+    case 16:
       return 2;
-    case 8:
+    case 40:
       return 3;
-    case 24:
+    case 64:
       return 4;
   }
 }

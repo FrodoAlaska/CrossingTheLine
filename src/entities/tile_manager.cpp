@@ -12,6 +12,9 @@
 struct TileManager {
   Level* level_ref;
 
+  TileType selected_type     = TILE_ROAD;
+  nikola::Vec3 selected_size = nikola::Vec3(TILE_SIZE, 1.0f, TILE_SIZE); 
+
   nikola::DynamicArray<Tile> tiles;
   nikola::Vec3 debug_selection;
 };
@@ -74,20 +77,20 @@ void tile_manager_save() {
 void tile_manager_process_input() {
   // @TODO: Please no. It works, but please no. It's SO bad-looking. 
 
-  float step = TILE_SIZE;
+  static float move_step = TILE_SIZE;
 
   if(nikola::input_key_pressed(nikola::KEY_UP)) {
-    s_tiles.debug_selection.x += step;
+    s_tiles.debug_selection.x += move_step;
   }
   else if(nikola::input_key_pressed(nikola::KEY_DOWN)) {
-    s_tiles.debug_selection.x -= step;
+    s_tiles.debug_selection.x -= move_step;
   }
 
   if(nikola::input_key_pressed(nikola::KEY_RIGHT)) {
-    s_tiles.debug_selection.z += step;
+    s_tiles.debug_selection.z += move_step;
   }
   else if(nikola::input_key_pressed(nikola::KEY_LEFT)) {
-    s_tiles.debug_selection.z -= step;
+    s_tiles.debug_selection.z -= move_step;
   }
 
   if(!nikola::input_key_down(nikola::KEY_LEFT_SHIFT)) {
@@ -95,44 +98,60 @@ void tile_manager_process_input() {
   }
 
   nikola::Vec3 position = s_tiles.debug_selection;
-  bool can_create       = false;
-  TileType type;
 
+  // Road
   if(nikola::input_key_pressed(nikola::KEY_1)) {
-    type       = TILE_ROAD;
-    can_create = true;
+    s_tiles.selected_type = TILE_ROAD;
+    s_tiles.selected_size = nikola::Vec3(TILE_SIZE, 1.0f, TILE_SIZE);
+    
+    move_step = 2.0f; 
   }
+  // Paviment
   else if(nikola::input_key_pressed(nikola::KEY_2)) {
-    type       = TILE_PAVIMENT;
-    position  += nikola::Vec3(0.0f, 0.3f, 0.0f); // We elevate the paviment a bit to make it look more "realistic"
-    can_create = true;
+    s_tiles.selected_type = TILE_PAVIMENT;
+    s_tiles.selected_size = nikola::Vec3(TILE_SIZE, 1.0f, TILE_SIZE);
+
+    move_step   = 2.0f; 
+    position.y += 0.3f; // We elevate the paviment a bit to make it look more "realistic"
   }
+  // Cone
   else if(nikola::input_key_pressed(nikola::KEY_3)) {
-    type       = TILE_CONE;
-    position  += nikola::Vec3(0.0f, 1.5f, 0.0f);
-    can_create = true;
+    s_tiles.selected_type = TILE_CONE;
+    s_tiles.selected_size = nikola::Vec3(2.0f);
+    
+    move_step   = 1.0f; 
+    position.y += 1.5f;
   }
+  // One-way tunnel
   else if(nikola::input_key_pressed(nikola::KEY_4)) {
-    type       = TILE_TUNNEL_ONE_WAY;
-    position  += nikola::Vec3(0.0f, 8.7f, 0.0f);
-    can_create = true;
+    s_tiles.selected_type = TILE_TUNNEL_ONE_WAY;
+    s_tiles.selected_size = nikola::Vec3(1.5f, 2.0f, 1.0f);
+
+    move_step = 2.0f; 
+    position += nikola::Vec3(0.0f, 8.7f, 0.0f);
   }
+  // Two-way tunnel
   else if(nikola::input_key_pressed(nikola::KEY_5)) {
-    type       = TILE_TUNNEL_TWO_WAY;
-    position  += nikola::Vec3(-4.0f, 11.5f, 0.0f);
-    can_create = true;
+    s_tiles.selected_type = TILE_TUNNEL_TWO_WAY;
+    s_tiles.selected_size = nikola::Vec3(2.0f, 2.0f, 1.0f);
+    
+    move_step = 2.0f; 
+    position += nikola::Vec3(-4.0f, 11.5f, 0.0f);
   }
+  // Three-way tunnel
   else if(nikola::input_key_pressed(nikola::KEY_6)) {
-    type       = TILE_TUNNEL_THREE_WAY;
-    position  += nikola::Vec3(0.0f, 8.7f, 0.0f);
-    can_create = true;
+    s_tiles.selected_type = TILE_TUNNEL_THREE_WAY;
+    s_tiles.selected_size = nikola::Vec3(3.0f, 2.0f, 1.0f);
+    
+    move_step = 2.0f; 
+    position += nikola::Vec3(0.0f, 8.7f, 0.0f);
   }
    
   // Welcome to the family new tile
 
-  if(can_create) {
+  if(nikola::input_key_pressed(nikola::KEY_ENTER)) {
     s_tiles.tiles.resize(s_tiles.tiles.size() + 1);
-    tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], s_tiles.level_ref, type, position);
+    tile_create(&s_tiles.tiles[s_tiles.tiles.size() - 1], s_tiles.level_ref, s_tiles.selected_type, s_tiles.debug_selection);
   }
 }
 
@@ -159,10 +178,18 @@ void tile_manager_render() {
         nikola::renderer_queue_model(resource_database_get(RESOURCE_CONE), transform);
         break;
       case TILE_TUNNEL_ONE_WAY:
-      case TILE_TUNNEL_TWO_WAY:
-      case TILE_TUNNEL_THREE_WAY:
-        nikola::transform_scale(transform, nikola::collider_get_extents(tile.entity.collider));
+        nikola::transform_scale(transform, nikola::Vec3(1.5f, 2.0f, 1.0f));
         nikola::renderer_queue_model(resource_database_get(RESOURCE_TUNNEL), transform);
+        break;
+      case TILE_TUNNEL_TWO_WAY:
+        nikola::transform_scale(transform, nikola::Vec3(2.0f, 2.0f, 1.0f));
+        nikola::renderer_queue_model(resource_database_get(RESOURCE_TUNNEL), transform);
+        break;
+      case TILE_TUNNEL_THREE_WAY:
+        nikola::transform_scale(transform, nikola::Vec3(3.0f, 2.0f, 1.0f));
+        nikola::renderer_queue_model(resource_database_get(RESOURCE_TUNNEL), transform);
+        break;
+      default:
         break;
     }
   
@@ -173,8 +200,8 @@ void tile_manager_render() {
   
   // Render debug tile selection
   if(s_tiles.level_ref->debug_mode) {
-    nikola::transform_translate(transform, s_tiles.debug_selection);
-    nikola::transform_scale(transform, nikola::Vec3(TILE_SIZE, 1.0f, TILE_SIZE));
+    nikola::transform_translate(transform, s_tiles.debug_selection + nikola::Vec3(2.0f));
+    nikola::transform_scale(transform, s_tiles.selected_size);
 
     nikola::renderer_debug_cube(transform, nikola::Vec4(1.0f, 0.0f, 1.0f, 0.2f));
   }
@@ -187,8 +214,18 @@ void tile_manager_render_gui() {
     if(ImGui::Button("Clear tiles")) {
       s_tiles.tiles.clear();
     }
+    
+    // Filter
+    static int filter_type = TILE_NONE; // A non-existent tile type
+    ImGui::Combo("Filter by type",  
+                  &filter_type, 
+                  "Road\0Paviment\0Cone\0Tunnel (One way)\0Tunnel (Two way)\0Tunnel (Three way)\0All\0\0");
 
     for(nikola::sizei i = 0; i < s_tiles.tiles.size(); i++) {
+      if(s_tiles.tiles[i].type != filter_type && filter_type != TILE_NONE) {
+        continue;
+      }
+      
       nikola::String name = ("Tile " + std::to_string(i)); 
       Entity* entity      = &s_tiles.tiles[i].entity;
       
@@ -226,34 +263,6 @@ void tile_manager_render_gui() {
       }
       
       ImGui::PopID();
-    }
-  }
-}
-
-void tile_manager_check_collisions(Player& player) {
-  if(!player.entity.is_active) {
-    return;
-  }
-
-  player.can_move = false;
-
-  // Player VS. Tiles
-  for(auto tile : s_tiles.tiles) {
-    if(!entity_aabb_test(player.entity, tile.entity)) {
-      continue;
-    }
-
-    switch(tile.type) {
-      case TILE_ROAD:
-        player.current_footstep_sound = SOUND_TILE_ROAD;
-        player.can_move               = true;
-        break;
-      case TILE_PAVIMENT:
-        player.current_footstep_sound = SOUND_TILE_PAVIMENT;
-        player.can_move               = true;
-        break;
-      default:
-        break;
     }
   }
 }

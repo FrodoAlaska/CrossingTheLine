@@ -35,6 +35,18 @@ enum EntityType {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// PhysicsLayers
+enum PhysicsLayers {
+  // Default
+  PHYSICS_LAYER_0 = 0x22,  
+
+  // Player, Tiles
+  PHYSICS_LAYER_1 = 0x4,
+};
+/// PhysicsLayers
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// VehicleType
 enum VehicleType {
   VEHICLE_CAR,
@@ -53,6 +65,8 @@ enum TileType {
   TILE_TUNNEL_ONE_WAY,
   TILE_TUNNEL_TWO_WAY,
   TILE_TUNNEL_THREE_WAY,
+
+  TILE_NONE,
 };
 /// TileType 
 /// ----------------------------------------------------------------------
@@ -194,8 +208,6 @@ void tile_manager_process_input();
 void tile_manager_render();
 
 void tile_manager_render_gui();
-
-void tile_manager_check_collisions(Player& player);
 
 /// Tile manager functions
 /// ----------------------------------------------------------------------

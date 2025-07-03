@@ -51,6 +51,9 @@ void vehicle_create(Vehicle* v,
 
   // Collider position init
   nikola::collider_set_local_position(v->entity.collider, collider_offset);
+
+  // Set the collision layer
+  nikola::physics_body_set_layers(v->entity.body, PHYSICS_LAYER_0);
 }
 
 void vehicle_set_active(Vehicle& v, const bool active) {

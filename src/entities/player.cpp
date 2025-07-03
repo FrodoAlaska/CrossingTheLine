@@ -32,8 +32,9 @@ void player_create(Player* player, Level* lvl, const nikola::Vec3& start_pos) {
   nikola::PhysicsBodyDesc body_desc = {
     .position      = player->entity.start_pos, 
     .type          = nikola::PHYSICS_BODY_DYNAMIC,
-    .user_data     = &player->entity,
     .locked_axises = nikola::BVec3(true),
+    .layers        = (PHYSICS_LAYER_0 | PHYSICS_LAYER_1),
+    .user_data     = &player->entity,
   };
   player->entity.body = nikola::physics_body_create(body_desc);
 
@@ -55,25 +56,14 @@ void player_update(Player& player) {
   // Movement
 
   // @TODO: Apply some gravity if the player is currently not allowed to move
-  // if(!player.can_move) {
-  //   nikola::Vec3 current_velocity = nikola::physics_body_get_linear_velocity(player.entity.body);
-  //   nikola::physics_body_set_linear_velocity(player.entity.body, nikola::Vec3(current_velocity.x, -9.81f, current_velocity.z));
-  //
-  //   return;
-  // }
+  if(!player.can_move) {
+    // nikola::physics_body_apply_force(player.entity.body, nikola::Vec3(0.0f, -9.81f, 0.0f));
+  }
 
   // Apply the velocity
   nikola::Vec3 velocity = input_manager_get_movement_velocity() * PLAYER_SPEED;
   nikola::physics_body_set_linear_velocity(player.entity.body, velocity);
 
-  // Play the footstep sound if possible
-  if(velocity.x != 0 || velocity.z != 0) {
-    game_event_dispatch(GameEvent{
-      .type       = GAME_EVENT_SOUND_PLAYED, 
-      .sound_type = player.current_footstep_sound,
-    });
-  }
- 
   // Make the camera follow the player's X position. 
   //
   // @TODO: Perhaps using something better than lerp for a smoother transition?
@@ -82,6 +72,9 @@ void player_update(Player& player) {
   nikola::Vec3 position  = nikola::physics_body_get_position(player.entity.body);
   
   camera->position.x = nikola::lerp(camera->position.x, position.x - 20.0f, nikola::niclock_get_delta_time() * 2.0f);
+
+  position.x = nikola::clamp_float(position.x, -27.5f, 100.0f);
+  nikola::physics_body_set_position(player.entity.body, position);
 }
 
 void player_set_active(Player& player, const bool active) {

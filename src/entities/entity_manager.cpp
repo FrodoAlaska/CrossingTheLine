@@ -40,6 +40,9 @@ static void resolve_player_begin_collisions(Entity* player, Entity* other) {
         .state_type = STATE_LOST
       });
       break;
+    case ENTITY_TILE: 
+      s_entt.player.can_move = true;
+      break;
     case ENTITY_END_POINT:
       player_set_active(s_entt.player, false);
       game_event_dispatch(GameEvent{
@@ -77,6 +80,9 @@ static void resolve_player_end_collisions(Entity* player, Entity* other) {
   Level* lvl = player->level_ref;
 
   switch(other->type) {
+    case ENTITY_TILE:
+      s_entt.player.can_move = false;
+      break;
     case ENTITY_CHAPTER_POINT: 
       game_event_dispatch(GameEvent{.type = GAME_EVENT_CHAPTER_EXITED}, other);
       break;
@@ -307,9 +313,6 @@ void entity_manager_update() {
   if(s_entt.coin.is_active) {
     nikola::physics_body_set_angular_velocity(s_entt.coin.body, nikola::Vec3(0.0f, 1.5f, 0.0f));
   } 
-
-  // Tiles test
-  // tile_manager_check_collisions(s_entt.player);
 }
 
 void entity_manager_render() {

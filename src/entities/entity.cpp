@@ -23,6 +23,7 @@ void entity_create(Entity* entity,
   nikola::PhysicsBodyDesc body_desc = {
     .position  = pos, 
     .type      = body_type,
+    .layers    = PHYSICS_LAYER_0,
     .user_data = entity,
   };
   entity->body = nikola::physics_body_create(body_desc);

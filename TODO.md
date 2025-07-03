@@ -6,7 +6,6 @@
 
 - Polish points: 
     - Resolve the player falling through the ground
-    - Some paviments need to be lowered a bit
 
 ## Fixes 
 
