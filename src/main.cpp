@@ -2,12 +2,7 @@
 
 #include <nikola/nikola_app.h>
 
-// Yeah, unfortunate...
-#if NIKOLA_PLATFORM_WINDOWS == 1 
-#include <windows.h>
-#endif
-
-int main(int argc, char** argv) {
+int engine_main(int argc, char** argv) {
   // Some useful flags
   int win_flags = nikola::WINDOW_FLAGS_FOCUS_ON_CREATE | 
                   nikola::WINDOW_FLAGS_CENTER_MOUSE    |
@@ -43,4 +38,19 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-// NIKOLA_MAIN(engine_main);
+#if DISTRIBUTION_BUILD == 1
+
+// Yeah, unfortunate...
+#if NIKOLA_PLATFORM_WINDOWS == 1 
+#include <windows.h>
+#endif
+
+NIKOLA_MAIN(engine_main);
+
+#else 
+
+int main(int argc, char** argv) {
+  return engine_main(argc, argv);
+}
+
+#endif

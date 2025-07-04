@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(game)
+project(cross)
 
 ### FetchContent ###
 ############################################################
@@ -81,7 +81,14 @@ set(PROJECT_SOURCES
 
 ### Targets ###
 ############################################################
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+if(DISTRIBUTION_BUILD EQUAL 1)
+  set(EXE_TYPE WIN32)
+  add_definitions(-DDISTRIBUTION_BUILD=1)
+else()
+  set(EXE_TYPE "")
+endif()
+
+add_executable(${PROJECT_NAME} ${EXE_TYPE} ${PROJECT_SOURCES})
 ############################################################
 
 ### Linking ###

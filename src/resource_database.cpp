@@ -18,7 +18,7 @@ static ResourceDatabase s_database;
 
 void resource_database_init() {
   // Resource group init
-  s_database.resource_group = nikola::resources_create_group("level_res", nikola::filesystem_current_path());
+  s_database.resource_group = nikola::resources_create_group("level_res", "./");
 
   // Resources init
   nikola::resources_push_dir(s_database.resource_group, "res");

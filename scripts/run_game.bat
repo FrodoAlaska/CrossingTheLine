@@ -3,7 +3,7 @@ pushd build
 cmake --build . --config Release --parallel 8
 if %ERRORLEVEL% NEQ 0 goto error
 
-.\Release\game.exe 
+.\Release\cross.exe 
 
 popd
 
