@@ -190,7 +190,7 @@ void won_state_init(nikola::Window* window, const nikola::ResourceID& font_id) {
   s_won.char_limit = (nikola::sizei)(s_won.wrap_limit / 16.6f); // @TODO: Explain
 
   // Dialogue init
-  read_dialogue_file("dialogue.txt");
+  read_dialogue_file("res/dialogue.txt");
   
   // Listen to events
   game_event_listen(GAME_EVENT_STATE_CHANGED, on_state_change);
