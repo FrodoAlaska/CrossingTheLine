@@ -55,7 +55,7 @@ void player_update(Player& player) {
 
   // Movement
 
-  // @TODO: Apply some gravity if the player is currently not allowed to move
+  // Apply some gravity if the player is currently not allowed to move
   if(!player.can_move) {
     nikola::physics_body_apply_force(player.entity.body, nikola::Vec3(0.0f, -9.81f, 0.0f));
   }
@@ -67,9 +67,11 @@ void player_update(Player& player) {
   nikola::physics_body_set_linear_velocity(player.entity.body, 
                                            nikola::Vec3(velocity.x, current_velocity.y, velocity.z));
 
+  if(velocity.x != 0 || velocity.z != 0) {
+    nikola::physics_body_apply_force(player.entity.body, nikola::Vec3(0.0f, 2.81f, 0.0f));
+  }
+
   // Make the camera follow the player's X position. 
-  //
-  // @TODO: Perhaps using something better than lerp for a smoother transition?
   
   nikola::Camera* camera = &player.entity.level_ref->main_camera;
   nikola::Vec3 position  = nikola::physics_body_get_position(player.entity.body);

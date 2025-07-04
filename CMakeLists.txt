@@ -8,7 +8,6 @@ include(FetchContent)
 set(NIKOLA_BUILD_TESTBED OFF)
 set(NIKOLA_BUILD_NBR     OFF)
 set(qu3e_build_demo      OFF)
-set(DISTRIBUTION_BUILD   0)
 
 FetchContent_Declare(
   nikola
@@ -86,6 +85,7 @@ if(DISTRIBUTION_BUILD EQUAL 1)
   add_definitions(-DDISTRIBUTION_BUILD=1)
 else()
   set(EXE_TYPE "")
+  add_definitions(-DDISTRIBUTION_BUILD=0)
 endif()
 
 add_executable(${PROJECT_NAME} ${EXE_TYPE} ${PROJECT_SOURCES})
