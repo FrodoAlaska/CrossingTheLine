@@ -68,7 +68,7 @@ void player_update(Player& player) {
                                            nikola::Vec3(velocity.x, current_velocity.y, velocity.z));
 
   if(velocity.x != 0 || velocity.z != 0) {
-    nikola::physics_body_apply_force(player.entity.body, nikola::Vec3(0.0f, 2.81f, 0.0f));
+    nikola::physics_body_apply_force(player.entity.body, nikola::Vec3(0.0f, 9.81f, 0.0f));
   }
 
   // Make the camera follow the player's X position. 

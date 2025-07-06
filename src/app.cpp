@@ -127,7 +127,7 @@ nikola::App* app_init(const nikola::Args& args, nikola::Window* window) {
 
   // Set some much needed physics settings
   nikola::physics_world_set_gravity(nikola::Vec3(0.0f));
-  nikola::physics_world_set_iterations_count(5);
+  nikola::physics_world_set_iterations_count(20);
 
   // Resources init
   resource_database_init();
